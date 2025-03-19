@@ -5,12 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Chat extends Model
+class GroupMember extends Model
 {
-    /** @use HasFactory<\Database\Factories\ChatFactory> */
+    /** @use HasFactory<\Database\Factories\GroupMemberFactory> */
     use HasFactory;
 
-    protected $fillable = ['user_id', 'message', 'from', 'to', 'created_at', 'updated_at'];
+    protected $guarded = [];
 
     public function user(){
         return $this->belongsTo(User::class);
