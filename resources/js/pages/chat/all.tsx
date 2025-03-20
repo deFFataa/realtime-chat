@@ -51,7 +51,7 @@ export default function GlobalChat({ messages, users, test }: Props) {
     });
 
     const [chats, setChats] = useState(messages.data);
-    console.log(messages);
+    // console.log(messages);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -135,7 +135,7 @@ export default function GlobalChat({ messages, users, test }: Props) {
 
         try {
             const response = await axios.get(`./all?page=${page + 1}`);
-            const newMessages = response.data.messages; // Ensure you are accessing `messages` from API response
+            const newMessages = response.data.messages; // Ensure correct response structure
 
             if (!newMessages || !newMessages.data) {
                 console.error('Invalid response structure:', response.data);
@@ -146,7 +146,8 @@ export default function GlobalChat({ messages, users, test }: Props) {
                 return !oldMessages.some((oldMessage: any) => oldMessage.id === newMessage.id);
             });
 
-            setOldMessages((prevMessages: any) => [...uniqueMessages, ...prevMessages]); // Prepend older messages
+            setOldMessages((prevMessages: any) => [...uniqueMessages, ...prevMessages]); // Add older messages at the top
+            setChats((prevChats: any) => [...uniqueMessages, ...prevChats]); // Update state for UI
             setPage(newMessages.current_page);
             setHasMore(newMessages.next_page_url !== null);
         } catch (error) {
