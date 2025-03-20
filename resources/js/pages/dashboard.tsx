@@ -14,11 +14,11 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-interface Props{
-    users_count: any
+interface Props {
+    users_count: any;
 }
 
-export default function Dashboard({users_count}: Props) {
+export default function Dashboard({ users_count }: Props) {
 
     const [totalUsers, setTotalUsers] = useState(users_count);
 
@@ -33,10 +33,9 @@ export default function Dashboard({users_count}: Props) {
             enabledTransports: ['ws', 'wss'],
         });
 
-        echo.channel('total-users')
-            .listen('TotalUsers', (e:any) => {
-                setTotalUsers(e.total_users);
-            })
+        echo.channel('total-users').listen('TotalUsers', (e: any) => {
+            setTotalUsers(e.total_users);
+        });
     }, []);
 
     return (

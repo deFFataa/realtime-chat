@@ -3,9 +3,12 @@
 use App\Http\Controllers\ChatController;
 use Illuminate\Support\Facades\Route;
 
-Route::controller(ChatController::class)->group(function(){
-    Route::get('/chat','index');
-    Route::get('/chat/{id}','show')->name('chat.show');
-    Route::post('/chat', 'store')->name('chat.store');
-})->middleware('auth');
+Route::middleware('auth')->group(function(){
+    Route::get('/chat/all', [ChatController::class, 'all']);
+    Route::post('/chat/all', [ChatController::class, 'storeGlobal'])->name('chat.store-global');
 
+
+    Route::get('/chat', [ChatController::class, 'index']);
+    Route::get('/chat/{id}', [ChatController::class, 'show'])->name('chat.show');
+    Route::post('/chat', [ChatController::class, 'store'])->name('chat.store');
+});

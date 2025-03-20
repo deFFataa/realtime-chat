@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\GlobalChat;
 use App\Events\GotMessage;
 use App\Models\Chat;
 use App\Models\User;
@@ -12,6 +13,32 @@ use App\Http\Requests\UpdateChatRequest;
 
 class ChatController extends Controller
 {
+    public function all(Request $request)
+    {
+        // broadcast(new GlobalChat());
+
+        if($request->wantsJson()){
+            return response()->json(['messages' => Chat::with('user')->paginate(10)]);
+        }
+
+        return Inertia::render("chat/all", [
+            "messages" => Chat::with('user')->paginate(10),
+            'users' => User::all()->except(auth()->id())
+        ]);
+    }
+
+    public function storeGlobal(Request $request){
+        $cred = $request->validate([
+            'message' => 'required',
+            'intended' => 'required',
+        ]);
+
+        $cred['user_id'] = auth()->id();
+
+        $chat = Chat::create($cred);
+
+        broadcast(new GlobalChat($chat));
+    }
     /**
      * Display a listing of the resource.
      */
@@ -41,7 +68,6 @@ class ChatController extends Controller
         ]);
 
         $cred['user_id'] = auth()->id();
-        $cred['from'] = auth()->id();
 
 
         $chat = Chat::create($cred);
@@ -62,14 +88,16 @@ class ChatController extends Controller
     {
         return Inertia::render("chat/show", [
             "user" => User::find($id),
+            'users' => User::all()->except(auth()->id()),
             "messages" => Chat::where(function ($query) use ($id) {
-                $query->where('from', auth()->id())
+                $query->where('user_id', auth()->id())
                     ->where('to', $id);
             })
                 ->orWhere(function ($query) use ($id) {
-                    $query->where('from', $id)
+                    $query->where('user_id', $id)
                         ->where('to', auth()->id());
                 })
+                ->with('user')
                 ->get(),
 
         ]);

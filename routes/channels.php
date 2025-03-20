@@ -10,8 +10,13 @@ Broadcast::channel('room.{roomId}', function (User $user, $roomId) {
     ];
 });
 
-Broadcast::channel('channel_for_everyone', function () {
-    //
+Broadcast::channel('chat.{user1}.{user2}', function ($user, $user1, $user2) {
+    // Ensure the authenticated user is either user1 or user2
+    return $user->id == $user1 || $user->id == $user2;
+});
+
+Broadcast::channel('global-chat', function(){
+
 });
 
 // Broadcast::chanlle('channel');

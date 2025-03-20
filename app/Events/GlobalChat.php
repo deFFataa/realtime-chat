@@ -3,7 +3,6 @@
 namespace App\Events;
 
 use App\Models\Chat;
-use App\Models\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -13,27 +12,29 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class GotMessage implements ShouldBroadcastNow
+class GlobalChat implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
      * Create a new event instance.
      */
+
     public function __construct(public Chat $chat)
     {
-        //
+
     }
 
-    public function broadcastWith()
-    {
+    public function broadcastWith(){
         return [
             "id" => $this->chat->id,
-            "message" => $this->chat->message,
+            "user_id" => $this->chat->user_id,
             "name" => $this->chat->user->name,
-            'user_id' => $this->chat->user_id,
-            'created_at' => $this->chat->created_at,
-            'updated_at' => $this->chat->updated_at
+            "message" => $this->chat->message,
+            "intended" => $this->chat->intended,
+            "to" => $this->chat->to,
+            "created_at" => $this->chat->created_at,
+            "updated_at" => $this->chat->updated_at,
         ];
     }
 
@@ -42,13 +43,10 @@ class GotMessage implements ShouldBroadcastNow
      *
      * @return array<int, \Illuminate\Broadcasting\Channel>
      */
-    public function broadcastOn(): PrivateChannel
+    public function broadcastOn(): array
     {
-        $user1 = $this->chat->user_id;
-        $user2 = $this->chat->to;
-
-        $channelName = $user1 < $user2 ? "chat.{$user1}.{$user2}" : "chat.{$user2}.{$user1}";
-
-        return new PrivateChannel($channelName);
+        return [
+            new Channel('global-chat'),
+        ];
     }
 }
