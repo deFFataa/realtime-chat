@@ -29,6 +29,7 @@ class GlobalChat implements ShouldBroadcastNow
         return [
             "id" => $this->chat->id,
             "user_id" => $this->chat->user_id,
+            "user_created" => $this->chat->user->created_at,
             "name" => $this->chat->user->name,
             "message" => $this->chat->message,
             "intended" => $this->chat->intended,

@@ -32,6 +32,7 @@ class GotMessage implements ShouldBroadcastNow
             "message" => $this->chat->message,
             "name" => $this->chat->user->name,
             'user_id' => $this->chat->user_id,
+            'user_created' => $this->chat->user->created_at,
             'created_at' => $this->chat->created_at,
             'updated_at' => $this->chat->updated_at
         ];

@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import ChatMessage from '@/components/ui/ChatMessage';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import ChatSidebarLayout from '@/layouts/chat/chat-sidebar-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -11,6 +11,7 @@ import { CircleDashed, SendIcon } from 'lucide-react';
 import Pusher from 'pusher-js';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+
 (window as any).Pusher = Pusher;
 
 interface Props {
@@ -50,21 +51,27 @@ export default function GlobalChat({ messages, users, test }: Props) {
         intended: 'all',
     });
 
-    const [chats, setChats] = useState(messages.data);
-    // console.log(messages);
+    const [chats, setChats] = useState(() => messages.data.slice().reverse());
+    const chatInput = useRef<HTMLTextAreaElement>(null);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         post(route('chat.store-global'), {
             onSuccess: () => {
-                reset();
+                data.message = '';
             },
             onError: () => {
-                toast('Something went wrong. Please try again');
+                toast('Cannot send a message', {
+                    description: 'There was an error sending your message. Please try again.',
+                });
             },
             preserveState: true,
         });
     };
+
+    useEffect(() => {
+        chatInput.current?.focus();
+    }, [handleSubmit]);
 
     const auth_user: User = usePage().props.auth as User;
 
@@ -81,8 +88,6 @@ export default function GlobalChat({ messages, users, test }: Props) {
 
         try {
             echo.channel('global-chat').listen('GlobalChat', (event: any) => {
-                // console.log(event);
-
                 setChats((prevChats: Message[]) => [...prevChats, event]);
             });
 
@@ -119,7 +124,17 @@ export default function GlobalChat({ messages, users, test }: Props) {
 
     useEffect(() => {
         if (chatContainerRef.current) {
-            (chatContainerRef.current as any).scrollTop = (chatContainerRef.current as any).scrollHeight;
+            const container = chatContainerRef.current as HTMLElement;
+
+            if (page === 1) {
+                container.scrollTop = container.scrollHeight;
+            } else {
+                const shouldScroll = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
+
+                if (shouldScroll) {
+                    container.scrollTop = container.scrollHeight;
+                }
+            }
         }
     }, [chats]);
 
@@ -129,27 +144,39 @@ export default function GlobalChat({ messages, users, test }: Props) {
     const [isLoading, setIsLoading] = useState(false);
 
     const loadMoreMessages = async () => {
-        if (!hasMore || isLoading) return;
+        if (!hasMore || isLoading || !chatContainerRef.current) return;
 
         setIsLoading(true);
 
+        const container = chatContainerRef.current as HTMLElement;
+        const previousScrollHeight = container.scrollHeight;
+        const previousScrollTop = container.scrollTop;
+
         try {
             const response = await axios.get(`./all?page=${page + 1}`);
-            const newMessages = response.data.messages; // Ensure correct response structure
+            const newMessages = response.data.messages;
 
             if (!newMessages || !newMessages.data) {
                 console.error('Invalid response structure:', response.data);
                 return;
             }
 
-            const uniqueMessages = newMessages.data.filter((newMessage: any) => {
-                return !oldMessages.some((oldMessage: any) => oldMessage.id === newMessage.id);
-            });
+            // Reverse the fetched messages so that they are in ascending order
+            const uniqueMessages = newMessages.data
+                .filter((newMessage: any) => {
+                    return !oldMessages.some((oldMessage: any) => oldMessage.id === newMessage.id);
+                })
+                .reverse();
 
-            setOldMessages((prevMessages: any) => [...uniqueMessages, ...prevMessages]); // Add older messages at the top
-            setChats((prevChats: any) => [...uniqueMessages, ...prevChats]); // Update state for UI
+            setOldMessages((prevMessages: any) => [...uniqueMessages, ...prevMessages]);
+            setChats((prevChats: any) => [...uniqueMessages, ...prevChats]);
             setPage(newMessages.current_page);
             setHasMore(newMessages.next_page_url !== null);
+
+            requestAnimationFrame(() => {
+                const newScrollHeight = container.scrollHeight;
+                container.scrollTop = previousScrollTop + (newScrollHeight - previousScrollHeight);
+            });
         } catch (error) {
             console.error('Error fetching more messages:', error);
         } finally {
@@ -170,7 +197,7 @@ export default function GlobalChat({ messages, users, test }: Props) {
             if (!chatContainerRef.current) return;
 
             const container = chatContainerRef.current as HTMLElement;
-            if (container.scrollTop <= 50) {
+            if (container.scrollTop <= 10) {
                 loadMoreMessages();
             }
         }, 200);
@@ -199,26 +226,51 @@ export default function GlobalChat({ messages, users, test }: Props) {
                                 {chats.length === 0 ? (
                                     <div className="grid h-full place-items-center font-medium">👋 Say hi to everyone.</div>
                                 ) : (
-                                    <div className="flex flex-col gap-3">
-                                        {chats?.map((chat: any) => (
-                                            <ChatMessage
-                                                name={chat?.user?.name}
-                                                key={chat.id}
-                                                message={chat?.message}
-                                                variant={chat.user_id === auth_user.user?.id ? 'sender' : 'receiver'}
-                                            />
-                                        ))}
+                                    <div className="flex flex-col-reverse gap-3">
+                                        {chats
+                                            ?.slice()
+                                            .reverse()
+                                            .map((chat: any) => (
+                                                <ChatMessage
+                                                    name={chat.name ? chat.name : chat.user.name}
+                                                    key={chat.id}
+                                                    message={chat?.message}
+                                                    variant={chat.user_id === auth_user.user?.id ? 'sender' : 'receiver'}
+                                                    sent_date={new Date(chat.created_at).toLocaleDateString('en-US', {
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        year: 'numeric',
+                                                    })}
+                                                    joinedAt={new Date(
+                                                        chat.user_created ? chat.user_created : chat.user.created_at,
+                                                    ).toLocaleDateString('en-US', {
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        year: 'numeric',
+                                                    })}
+                                                />
+                                            ))}
                                     </div>
                                 )}
                             </div>
 
                             <div className="mt-2 flex items-center gap-2">
-                                <Input
+                                <Textarea
                                     name="message"
+                                    ref={chatInput}
+                                    className="scrollbar-hide h-full max-h-[70px] min-h-auto w-full flex-1 resize-none overflow-x-hidden overflow-y-auto break-words break-all"
                                     onChange={(e) => setData('message', e.target.value)}
                                     placeholder="Type your message here.."
                                     value={data.message}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleSubmit(e as any);
+                                        }
+                                    }}
+                                    disabled={processing}
                                 />
+
                                 <Button disabled={data.message === '' || processing}>
                                     {!processing ? <SendIcon /> : <CircleDashed className="h-4 w-4 animate-spin" />}
                                 </Button>

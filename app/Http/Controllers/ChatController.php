@@ -18,18 +18,18 @@ class ChatController extends Controller
         // broadcast(new GlobalChat());
 
         if($request->wantsJson()){
-            return response()->json(['messages' => Chat::with('user')->paginate(10)]);
+            return response()->json(['messages' => Chat::with('user')->where('intended', 'all')->latest()->paginate(10)]);
         }
 
         return Inertia::render("chat/all", [
-            "messages" => Chat::with('user')->paginate(10),
+            "messages" => Chat::with('user')->where('intended', 'all')->latest()->paginate(10),
             'users' => User::all()->except(auth()->id())
         ]);
     }
 
     public function storeGlobal(Request $request){
         $cred = $request->validate([
-            'message' => 'required',
+            'message' => ['required', 'max:100'],
             'intended' => 'required',
         ]);
 
@@ -63,29 +63,40 @@ class ChatController extends Controller
     public function store(Request $request)
     {
         $cred = $request->validate([
-            'message' => 'required',
+            'message' => ['required', 'max:100'],
             'to' => 'required',
         ]);
-
+    
         $cred['user_id'] = auth()->id();
-
-
+    
         $chat = Chat::create($cred);
-
-        // return redirect()->back();
-
+    
         broadcast(new GotMessage($chat));
-
-        // return redirect()->back()->with([
-        //     'chat' => $chat
-        // ]);
     }
+    
 
     /**
      * Display the specified resource.
      */
-    public function show(Chat $chat, $id)
+    public function show(Chat $chat, $id, Request $request)
     {
+
+        if($request->wantsJson()){
+            return response()->json([
+                'messages' => Chat::where(function ($query) use ($id) {
+                    $query->where('user_id', auth()->id())
+                        ->where('to', $id);
+                })
+                ->orWhere(function ($query) use ($id) {
+                    $query->where('user_id', auth()->id())
+                        ->where('to', $id);
+                })
+                ->with('user')
+                ->latest()
+                ->paginate(10)
+            ]);
+        }
+
         return Inertia::render("chat/show", [
             "user" => User::find($id),
             'users' => User::all()->except(auth()->id()),
@@ -98,7 +109,8 @@ class ChatController extends Controller
                         ->where('to', auth()->id());
                 })
                 ->with('user')
-                ->get(),
+                ->latest()
+                ->paginate(10),
 
         ]);
     }

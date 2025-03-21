@@ -1,11 +1,12 @@
 import { Button } from '@/components/ui/button';
 import ChatMessage from '@/components/ui/ChatMessage';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import ChatSidebarLayout from '@/layouts/chat/chat-sidebar-layout';
 import { ProperName } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
+import axios from 'axios';
 import Echo from 'laravel-echo';
 import { CircleDashed, SendIcon } from 'lucide-react';
 import Pusher from 'pusher-js';
@@ -39,14 +40,15 @@ export default function Show({ messages, user, users }: Props) {
         to: user.id,
     });
 
-    const [chats, setChats] = useState(messages);
-    console.log(chats);
+    const [chats, setChats] = useState(() => messages.data.slice().reverse());
+    // console.log(chats);
+    const chatInput = useRef<HTMLTextAreaElement>(null);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         post(route('chat.store'), {
             onSuccess: () => {
-                reset();
+                data.message = '';
             },
             onError: () => {
                 toast('Something went wrong. Please try again');
@@ -54,6 +56,10 @@ export default function Show({ messages, user, users }: Props) {
             preserveState: true,
         });
     };
+
+    useEffect(() => {
+        chatInput.current?.focus();
+    }, [handleSubmit]);
 
     const auth_user: User = usePage().props.auth as User;
 
@@ -107,13 +113,101 @@ export default function Show({ messages, user, users }: Props) {
         }
     }, [auth_user.user?.id, user.id]);
 
-    const chatContainerRef = useRef(null);
+    const chatContainerRef = useRef<HTMLDivElement>(null);
+
+    const [oldMessages, setOldMessages] = useState(messages.data);
+    const [page, setPage] = useState(messages.current_page);
+    const [hasMore, setHasMore] = useState(messages.next_page_url !== null);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (chatContainerRef.current) {
-            (chatContainerRef.current as any).scrollTop = (chatContainerRef.current as any).scrollHeight;
+            const container = chatContainerRef.current as HTMLElement;
+
+            if (page === 1) {
+                container.scrollTop = container.scrollHeight;
+            } else {
+                const shouldScroll = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
+
+                if (shouldScroll) {
+                    container.scrollTop = container.scrollHeight;
+                }
+            }
         }
     }, [chats]);
+
+    const loadMoreMessages = async () => {
+        if (!hasMore || isLoading || !chatContainerRef.current) return;
+
+        setIsLoading(true);
+
+        const container = chatContainerRef.current as HTMLElement;
+        const previousScrollHeight = container.scrollHeight;
+        const previousScrollTop = container.scrollTop;
+
+        try {
+            const response = await axios.get(`./${user.id}?page=${page + 1}`);
+            const newMessages = response.data.messages;
+
+            console.log(newMessages);
+
+            if (!newMessages || !newMessages.data) {
+                console.error('Invalid response structure:', response.data);
+                return;
+            }
+
+            // Reverse the fetched messages so that they are in ascending order
+            const uniqueMessages = newMessages.data
+                .filter((newMessage: any) => {
+                    return !oldMessages.some((oldMessage: any) => oldMessage.id === newMessage.id);
+                })
+                .reverse();
+
+            setOldMessages((prevMessages: any) => [...uniqueMessages, ...prevMessages]);
+            setChats((prevChats: any) => [...uniqueMessages, ...prevChats]);
+            setPage(newMessages.current_page);
+            setHasMore(newMessages.next_page_url !== null);
+
+            requestAnimationFrame(() => {
+                const newScrollHeight = container.scrollHeight;
+                container.scrollTop = previousScrollTop + (newScrollHeight - previousScrollHeight);
+            });
+        } catch (error) {
+            console.error('Error fetching more messages:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const debounce = (func: any, delay: number) => {
+            let timeoutId: any;
+            return (...args: any) => {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => func(...args), delay);
+            };
+        };
+
+        const handleScroll = debounce(() => {
+            if (!chatContainerRef.current) return;
+
+            const container = chatContainerRef.current;
+            if (container.scrollTop <= 10) {
+                loadMoreMessages();
+            }
+        }, 200);
+
+        const chatContainer = chatContainerRef.current;
+        if (chatContainer) {
+            chatContainer.addEventListener('scroll', handleScroll);
+        }
+
+        return () => {
+            if (chatContainer) {
+                chatContainer.removeEventListener('scroll', handleScroll);
+            }
+        };
+    }, [page, hasMore, isLoading]);
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -144,28 +238,46 @@ export default function Show({ messages, user, users }: Props) {
                             )}
 
                             {chats.length > 0 && (
-                                <div ref={chatContainerRef} className="flex-1 overflow-auto rounded-md border p-5" style={{ maxHeight: availableHeight }}>
+                                <div
+                                    ref={chatContainerRef}
+                                    className="flex-1 overflow-auto rounded-md border p-5"
+                                    style={{ maxHeight: availableHeight }}
+                                >
                                     <div className="flex flex-col gap-4">
                                         {chats?.map((chat: any) => (
                                             <ChatMessage
                                                 key={chat.id}
                                                 name={chat.name ? chat.name : chat.user?.name}
-                                                message={chat?.message}
+                                                message={<span dangerouslySetInnerHTML={{ __html: chat.message }} />}
                                                 variant={chat.user_id === auth_user.user?.id ? 'sender' : 'receiver'}
+                                                sent_date={new Date(chat.created_at).toLocaleDateString('en-US', {
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    year: 'numeric',
+                                                })}
                                             />
                                         ))}
                                     </div>
                                 </div>
                             )}
 
-                            <div className="mt-2 flex items-center gap-2">
-                                <Input
+                            <div className="mt-2 flex gap-2">
+                                <Textarea
                                     name="message"
+                                    ref={chatInput}
+                                    className="w-full min-h-auto max-h-[100px] flex-1 resize-none break-words break-all overflow-x-hidden h-full whitespace-pre-wrap"
                                     onChange={(e) => setData('message', e.target.value)}
                                     placeholder="Type your message here.."
                                     value={data.message}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleSubmit(e as any);
+                                        }
+                                    }}
                                 />
-                                <Button disabled={data.message === '' || processing}>
+
+                                <Button className='self-end' disabled={data.message === '' || processing}>
                                     {!processing ? <SendIcon /> : <CircleDashed className="h-4 w-4 animate-spin" />}
                                 </Button>
                             </div>
