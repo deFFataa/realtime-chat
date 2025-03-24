@@ -6,7 +6,7 @@ import { Head } from '@inertiajs/react';
 import Pusher from 'pusher-js';
 (window as any).Pusher = Pusher;
 
-export default function Chat({ users }: Props) {
+export default function Chat({ users, groups }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Chat',
@@ -17,7 +17,7 @@ export default function Chat({ users }: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Chat" />
-            <ChatSidebarLayout users={users}>
+            <ChatSidebarLayout users={users} groups={groups}>
                 <div className="h-full">
 
                 </div>

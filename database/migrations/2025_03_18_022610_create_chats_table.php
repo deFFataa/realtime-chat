@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('message');
             $table->string('to')->nullable();
             $table->string('intended')->nullable();
+            $table->unsignedBigInteger('conversation_id')->nullable();
+            $table->foreign('conversation_id')->references('id')->on('conversations')->onDelete('cascade');
             $table->timestamps();
         });
     }

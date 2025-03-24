@@ -6,6 +6,8 @@ use App\Models\User;
 use Inertia\Inertia;
 use App\Events\GotMessage;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ConversationController;
+
 use App\Http\Controllers\ChatController;
 
 Route::get('/', function () {
@@ -33,4 +35,6 @@ Route::get('/room/{room}', function(Room $room){
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+require __DIR__.'/conversation.php';
+
 require __DIR__.'/chat.php';

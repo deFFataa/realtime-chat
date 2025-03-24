@@ -1,5 +1,7 @@
 import { Button } from '@/components/ui/button';
 import ChatMessage from '@/components/ui/ChatMessage';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import ChatSidebarLayout from '@/layouts/chat/chat-sidebar-layout';
@@ -8,17 +10,21 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import Echo from 'laravel-echo';
-import { CircleDashed, SendIcon } from 'lucide-react';
+import { CircleDashed, DoorOpen, Info, SearchIcon, SendIcon, UserRoundPlus } from 'lucide-react';
 import Pusher from 'pusher-js';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 (window as any).Pusher = Pusher;
+
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface Props {
     messages?: any;
     user?: any;
     users?: any;
     groups?: any;
+    conversation_name: string;
 }
 
 interface Message {
@@ -35,18 +41,23 @@ interface User {
     };
 }
 
-export default function Show({ messages, user, users, groups }: Props) {
+export default function Show({ messages, user, users, groups, conversation_name }: Props) {
+    console.log(user);
+
     const { data, setData, reset, post, processing } = useForm({
         message: '',
-        to: user.id,
+        conversation_id: user.id
     });
+
+    console.log(user.id);
+    
 
     const [chats, setChats] = useState(() => messages.data.slice().reverse());
     const chatInput = useRef<HTMLTextAreaElement>(null);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        post(route('chat.store'), {
+        post(route('conversation.send_message'), {
             onSuccess: () => {
                 reset()
             },
@@ -215,7 +226,7 @@ export default function Show({ messages, user, users, groups }: Props) {
             href: '/chat',
         },
         {
-            title: ProperName(user.name),
+            title: ProperName(user.conversation_name),
             href: '/#',
         },
     ];
@@ -225,7 +236,53 @@ export default function Show({ messages, user, users, groups }: Props) {
             <Head title="Chat" />
             <ChatSidebarLayout users={users} groups={groups}>
                 <div className="h-full p-4">
-                    <h2 className="font-bold">{ProperName(user.name)}</h2>
+                    <div className="flex justify-between">
+                        <h2 className="font-bold">{ProperName(user.conversation_name)}</h2>
+                        <Popover>
+                            <PopoverTrigger className="hover:bg-secondary hover:text-primary rounded-full p-1">
+                                <Info />
+                            </PopoverTrigger>
+                            <PopoverContent>
+                                <div className="flex w-full flex-col">
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button variant="ghost" className="flex w-full justify-start">
+                                                <UserRoundPlus size={16} />
+                                                <span className="ml-2">Add Member</span>
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent className="sm:max-w-[425px]">
+                                            <DialogHeader>
+                                                <DialogTitle>Add people</DialogTitle>
+                                                <DialogDescription>Add people to this group chat.</DialogDescription>
+                                            </DialogHeader>
+                                            <div className="grid gap-4 py-4">
+                                                <div className="grid items-center gap-4">
+                                                    <div className="relative">
+                                                        <span className="absolute left-1 inset-y-0 grid w-8 place-content-center">
+                                                            <SearchIcon size={14}/>
+                                                        </span>
+                                                        <Input type="text" id="Search" name="search" placeholder="Search" className='pl-9'/>
+                                                    </div>
+                                                </div>
+                                                <div className="grid items-center gap-4">
+                                                    Users will be displayed here
+                                                </div>
+                                            </div>
+                                            <DialogFooter>
+                                                <Button type="submit">Add</Button>
+                                            </DialogFooter>
+                                        </DialogContent>
+                                    </Dialog>
+                                    <hr />
+                                    <Button variant={'ghost'} className="flex w-full justify-start text-red-500 hover:text-red-500">
+                                        <DoorOpen size={16} />
+                                        <span className="ml-2">Leave Group Chat</span>
+                                    </Button>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
                     <form onSubmit={handleSubmit} className="grid h-full w-full place-items-center">
                         <div className="mt-4 flex h-full w-full flex-col">
                             {chats.length === 0 && (
@@ -233,7 +290,7 @@ export default function Show({ messages, user, users, groups }: Props) {
                                     className="grid flex-1 place-items-center overflow-auto rounded-md border font-medium"
                                     style={{ maxHeight: availableHeight }}
                                 >
-                                    👋 Say hi to {user.name}.
+                                    👋 Say hi to {conversation_name}.
                                 </div>
                             )}
 
@@ -265,7 +322,7 @@ export default function Show({ messages, user, users, groups }: Props) {
                                 <Textarea
                                     name="message"
                                     ref={chatInput}
-                                    className="w-full min-h-auto max-h-[100px] flex-1 resize-none break-words break-all overflow-x-hidden h-full whitespace-pre-wrap"
+                                    className="h-full max-h-[100px] min-h-auto w-full flex-1 resize-none overflow-x-hidden break-words break-all whitespace-pre-wrap"
                                     onChange={(e) => setData('message', e.target.value)}
                                     placeholder="Type your message here.."
                                     value={data.message}
@@ -275,10 +332,9 @@ export default function Show({ messages, user, users, groups }: Props) {
                                             handleSubmit(e as any);
                                         }
                                     }}
-                                    disabled={processing}
                                 />
 
-                                <Button className='self-end' disabled={data.message === '' || processing}>
+                                <Button className="self-end" disabled={data.message === '' || processing}>
                                     {!processing ? <SendIcon /> : <CircleDashed className="h-4 w-4 animate-spin" />}
                                 </Button>
                             </div>

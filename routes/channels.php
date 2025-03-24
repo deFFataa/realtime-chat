@@ -19,12 +19,15 @@ Broadcast::channel('global-chat', function(){
 
 });
 
-// Broadcast::chanlle('channel');
+Broadcast::channel('display-created-group-chat-{id}', function (User $user, $id) {
+    return (int) $user->id === (int) $id;
+});
+
 
 Broadcast::channel('app', function(User $user){
     return true;
 });
 
-Broadcast::channel('total-users', function () {
-    //
+Broadcast::channel('total-users', function (User $user) {
+    return true;
 });

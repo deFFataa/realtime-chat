@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\GlobalChat;
 use App\Events\GotMessage;
 use App\Models\Chat;
+use App\Models\GroupMember;
 use App\Models\User;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
@@ -23,7 +24,8 @@ class ChatController extends Controller
 
         return Inertia::render("chat/all", [
             "messages" => Chat::with('user')->where('intended', 'all')->latest()->paginate(10),
-            'users' => User::all()->except(auth()->id())
+            'users' => User::all()->except(auth()->id()),
+            'groups' => GroupMember::with(['user', 'conversation'])->where('user_id', auth()->id())->get()
         ]);
     }
 
@@ -45,7 +47,8 @@ class ChatController extends Controller
     public function index()
     {
         return Inertia::render("chat/index", [
-            'users' => User::all()->except(auth()->id())
+            'users' => User::all()->except(auth()->id()),
+            'groups' => GroupMember::with(['user', 'conversation'])->where('user_id', auth()->id())->get()
         ]);
     }
 
@@ -100,6 +103,7 @@ class ChatController extends Controller
         return Inertia::render("chat/show", [
             "user" => User::find($id),
             'users' => User::all()->except(auth()->id()),
+            'groups' => GroupMember::with(['user', 'conversation'])->where('user_id', auth()->id())->get(),
             "messages" => Chat::where(function ($query) use ($id) {
                 $query->where('user_id', auth()->id())
                     ->where('to', $id);

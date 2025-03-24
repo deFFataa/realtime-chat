@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 interface Props {
     messages?: any;
     users?: any;
-    test?: any;
+    groups?: any;
 }
 
 interface Message {
@@ -34,7 +34,7 @@ interface User {
     };
 }
 
-export default function GlobalChat({ messages, users, test }: Props) {
+export default function GlobalChat({ messages, users, groups }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Chat',
@@ -50,6 +50,7 @@ export default function GlobalChat({ messages, users, test }: Props) {
         message: '',
         intended: 'all',
     });
+    
 
     const [chats, setChats] = useState(() => messages.data.slice().reverse());
     const chatInput = useRef<HTMLTextAreaElement>(null);
@@ -217,7 +218,7 @@ export default function GlobalChat({ messages, users, test }: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Chat" />
-            <ChatSidebarLayout users={users}>
+            <ChatSidebarLayout users={users} groups={groups}>
                 <div className="h-full p-4">
                     <h2 className="font-bold">Global Chat</h2>
                     <form onSubmit={handleSubmit} className="grid h-full w-full place-items-center">
