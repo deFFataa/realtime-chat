@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Chat;
+use App\Models\Conversation;
 use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 
@@ -23,11 +25,19 @@ Broadcast::channel('display-created-group-chat-{id}', function (User $user, $id)
     return (int) $user->id === (int) $id;
 });
 
+Broadcast::channel('added-member-to-group-chat-{id}', function (User $user, $id) {
+    return (int) $user->id === (int) $id;
+});
+
 
 Broadcast::channel('app', function(User $user){
     return true;
 });
 
 Broadcast::channel('total-users', function (User $user) {
+    return true;
+});
+
+Broadcast::channel('group-chat.{id}', function (User $user) {
     return true;
 });

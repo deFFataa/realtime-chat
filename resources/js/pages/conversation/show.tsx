@@ -1,7 +1,8 @@
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import ChatMessage from '@/components/ui/ChatMessage';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import ChatSidebarLayout from '@/layouts/chat/chat-sidebar-layout';
@@ -10,7 +11,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import Echo from 'laravel-echo';
-import { CircleDashed, DoorOpen, Info, SearchIcon, SendIcon, UserRoundPlus } from 'lucide-react';
+import { CircleDashed, DoorOpen, Ellipsis, Info, LoaderCircle, SearchIcon, SendIcon, UserRoundPlus, Users, X, XCircle } from 'lucide-react';
 import Pusher from 'pusher-js';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -25,6 +26,8 @@ interface Props {
     users?: any;
     groups?: any;
     conversation_name: string;
+    conversation?: any;
+    group_members?: any;
 }
 
 interface Message {
@@ -39,18 +42,31 @@ interface User {
         name?: string;
         email?: string;
     };
+
+    name: string;
+    id: number | string;
 }
 
-export default function Show({ messages, user, users, groups, conversation_name }: Props) {
-    console.log(user);
-
-    const { data, setData, reset, post, processing } = useForm({
+export default function Show({ messages, conversation, users, groups, conversation_name, group_members }: Props) {
+    const {
+        data,
+        setData,
+        reset,
+        post,
+        processing,
+        delete: destroy,
+    } = useForm({
         message: '',
-        conversation_id: user.id
+        conversation_id: conversation.id,
+        users: [] as any,
     });
 
-    console.log(user.id);
-    
+    const toggleUserSelection = (selectedUser: any) => {
+        const usersArray = Array.isArray(data.users) ? data.users : []; // Ensure it's an array
+        const exists = usersArray.some((u: any) => u.id === selectedUser.id);
+
+        setData('users', exists ? usersArray.filter((u: any) => u.id !== selectedUser.id) : [...usersArray, selectedUser]);
+    };
 
     const [chats, setChats] = useState(() => messages.data.slice().reverse());
     const chatInput = useRef<HTMLTextAreaElement>(null);
@@ -59,7 +75,7 @@ export default function Show({ messages, user, users, groups, conversation_name 
         e.preventDefault();
         post(route('conversation.send_message'), {
             onSuccess: () => {
-                reset()
+                reset();
             },
             onError: () => {
                 toast('Something went wrong. Please try again');
@@ -107,22 +123,18 @@ export default function Show({ messages, user, users, groups, conversation_name 
         });
 
         try {
-            const user1 = auth_user.user?.id;
-            if (!user1) return;
-            const user2 = user.id;
-            const channelName = user1 < user2 ? `chat.${user1}.${user2}` : `chat.${user2}.${user1}`;
-
-            echo.private(channelName).listen('GotMessage', (event: any) => {
+            echo.private(`group-chat.${conversation.id}`).listen('GroupChat', (event: any) => {
+                console.log(event);
                 setChats((prevChats: Message[]) => [...prevChats, event]);
             });
 
             return () => {
-                echo.leaveChannel(channelName);
+                echo.leaveChannel(`group-chat.${conversation.id}`);
             };
         } catch (error) {
             console.log(error);
         }
-    }, [auth_user.user?.id, user.id]);
+    }, [auth_user.user?.id, conversation.id]);
 
     const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -157,17 +169,14 @@ export default function Show({ messages, user, users, groups, conversation_name 
         const previousScrollTop = container.scrollTop;
 
         try {
-            const response = await axios.get(`./${user.id}?page=${page + 1}`);
+            const response = await axios.get(`./${conversation.id}?page=${page + 1}`);
             const newMessages = response.data.messages;
-
-            console.log(newMessages);
 
             if (!newMessages || !newMessages.data) {
                 console.error('Invalid response structure:', response.data);
                 return;
             }
 
-            // Reverse the fetched messages so that they are in ascending order
             const uniqueMessages = newMessages.data
                 .filter((newMessage: any) => {
                     return !oldMessages.some((oldMessage: any) => oldMessage.id === newMessage.id);
@@ -220,13 +229,68 @@ export default function Show({ messages, user, users, groups, conversation_name 
         };
     }, [page, hasMore, isLoading]);
 
+    const [userList, setUserList] = useState<User[]>(users);
+
+    const addMembers = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        post(route('conversation.add_members'), {
+            onSuccess: () => {
+                reset();
+                toast('Members added successfully!');
+                setUserList((users) => users.filter((user) => !data.users.includes(user)));
+            },
+            onError: () => {
+                toast.error('Something went wrong. Please try again.');
+            },
+        });
+    };
+
+    const leaveGroupChat = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        destroy(
+            route('conversation.leave-group-chat', {
+                id: auth_user.user?.id,
+                conversationId: conversation.id,
+            }),
+            {
+                method: 'delete', // Ensure it's a DELETE request
+                onSuccess: () => {
+                    reset();
+                    toast.success('You successfully left the group chat.');
+                },
+                onError: () => {
+                    toast.error('Something went wrong. Please try again.');
+                },
+            },
+        );
+    };
+
+    const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+
+    const removeMemberFromGroupChat = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        destroy(route('conversation.remove-member-from-group-chat', { 
+            id: selectedUserId, conversationId: conversation.id 
+        }), {
+            onSuccess: () => {
+                toast.success('Member removed successfully.');
+            },
+            onError: () => {
+                toast.error('Something went wrong. Please try again.');
+            }
+        });
+    };
+    
+
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Chat',
             href: '/chat',
         },
         {
-            title: ProperName(user.conversation_name),
+            title: ProperName(conversation.conversation_name),
             href: '/#',
         },
     ];
@@ -237,7 +301,7 @@ export default function Show({ messages, user, users, groups, conversation_name 
             <ChatSidebarLayout users={users} groups={groups}>
                 <div className="h-full p-4">
                     <div className="flex justify-between">
-                        <h2 className="font-bold">{ProperName(user.conversation_name)}</h2>
+                        <h2 className="font-bold">{ProperName(conversation.conversation_name)}</h2>
                         <Popover>
                             <PopoverTrigger className="hover:bg-secondary hover:text-primary rounded-full p-1">
                                 <Info />
@@ -252,33 +316,212 @@ export default function Show({ messages, user, users, groups, conversation_name 
                                             </Button>
                                         </DialogTrigger>
                                         <DialogContent className="sm:max-w-[425px]">
-                                            <DialogHeader>
-                                                <DialogTitle>Add people</DialogTitle>
-                                                <DialogDescription>Add people to this group chat.</DialogDescription>
-                                            </DialogHeader>
-                                            <div className="grid gap-4 py-4">
-                                                <div className="grid items-center gap-4">
-                                                    <div className="relative">
-                                                        <span className="absolute left-1 inset-y-0 grid w-8 place-content-center">
-                                                            <SearchIcon size={14}/>
-                                                        </span>
-                                                        <Input type="text" id="Search" name="search" placeholder="Search" className='pl-9'/>
+                                            <form onSubmit={addMembers}>
+                                                <DialogHeader>
+                                                    <DialogTitle>Add people</DialogTitle>
+                                                    <DialogDescription>Add people to this group chat.</DialogDescription>
+                                                </DialogHeader>
+                                                <div className="grid gap-4 py-4">
+                                                    <div className="grid items-center gap-4">
+                                                        <div className="relative">
+                                                            <span className="absolute inset-y-0 left-1 grid w-8 place-content-center">
+                                                                <SearchIcon size={14} />
+                                                            </span>
+                                                            <Input type="text" id="Search" name="search" placeholder="Search" className="pl-9" />
+                                                        </div>
+                                                    </div>
+                                                    {Array.isArray(data.users) && data.users.length > 0 && (
+                                                        <div className="bg-muted/30 flex gap-2 overflow-auto rounded-md p-2">
+                                                            {data.users.map((user: any) => (
+                                                                <div
+                                                                    key={user.id}
+                                                                    className="bg-secondary flex w-full max-w-fit min-w-fit items-center gap-2 rounded-md p-2 text-xs"
+                                                                >
+                                                                    <div className="w-full">{user.name}</div>
+                                                                    <button
+                                                                        className="hover:bg-primary/30 rounded-full text-lg duration-100 ease-in"
+                                                                        type="button"
+                                                                        onClick={() => toggleUserSelection(user)}
+                                                                    >
+                                                                        <X size={24} className="p-1" />
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+
+                                                    <div className="bg-muted/20 grid max-h-[300px] items-center overflow-y-auto rounded-md">
+                                                        {userList.length === 0 && <p>List is Empty</p>}
+                                                        {userList.map((user) => {
+                                                            const isChecked =
+                                                                Array.isArray(data.users) && data.users.some((u: any) => u.id === user.id);
+
+                                                            return (
+                                                                <div key={user.id} className="border-b">
+                                                                    <div className="hover:bg-muted/30 duration:100 flex items-center justify-between space-x-2 rounded-md ease-in">
+                                                                        <label
+                                                                            htmlFor={`member-${user.id}`}
+                                                                            className="flex w-full items-center gap-2 p-2 text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                                        >
+                                                                            <Avatar>
+                                                                                <AvatarFallback>{user.name[0].toUpperCase()}</AvatarFallback>
+                                                                            </Avatar>
+                                                                            <span>{user.name}</span>
+                                                                        </label>
+                                                                        <Checkbox
+                                                                            id={`member-${user.id}`}
+                                                                            className="me-2"
+                                                                            name="users"
+                                                                            checked={isChecked}
+                                                                            onCheckedChange={() => toggleUserSelection(user)}
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
                                                     </div>
                                                 </div>
-                                                <div className="grid items-center gap-4">
-                                                    Users will be displayed here
+                                                <DialogFooter>
+                                                    <Button type="submit" disabled={data.users.length === 0 || processing}>
+                                                        {processing ? (
+                                                            <div className="flex items-center gap-2">
+                                                                <LoaderCircle size={16} className="animate-spin" />
+                                                                Adding ...
+                                                            </div>
+                                                        ) : (
+                                                            'Add'
+                                                        )}
+                                                    </Button>
+                                                </DialogFooter>
+                                            </form>
+                                        </DialogContent>
+                                    </Dialog>
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button variant="ghost" className="flex w-full justify-start">
+                                                <Users size={16} />
+                                                <span className="ml-2">View Members</span>
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent className="sm:max-w-[425px]">
+                                            <form onSubmit={addMembers}>
+                                                <DialogHeader>
+                                                    <DialogTitle>List of Members</DialogTitle>
+                                                </DialogHeader>
+                                                <div className="grid gap-4 py-4">
+                                                    <div className="bg-muted/20 grid max-h-[300px] items-center overflow-y-auto rounded-md">
+                                                        {group_members.length === 0 && <p>No Members</p>}
+                                                        {group_members.map((user: any) => {
+                                                            return (
+                                                                <div key={user.user.id} className="flex items-center justify-between border-b">
+                                                                    <div className="flex items-center justify-between space-x-2 rounded-md">
+                                                                        <label
+                                                                            htmlFor={`member-${user.user.id}`}
+                                                                            className="flex w-full items-center gap-2 p-2 text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                                        >
+                                                                            <Avatar>
+                                                                                <AvatarFallback>{user.user.name[0].toUpperCase()}</AvatarFallback>
+                                                                            </Avatar>
+                                                                            <span>{user.user.id === auth_user.user?.id ? 'You' : user.user.name}</span>
+                                                                        </label>
+                                                                    </div>
+                                                                    {conversation.user_id === auth_user.user?.id && user.user.id !== auth_user.user?.id &&(
+                                                                        <Popover>
+                                                                            <PopoverTrigger className="hover:bg-secondary hover:text-primary rounded-full p-1">
+                                                                                <Ellipsis size={24} className="p-1" />
+                                                                            </PopoverTrigger>
+                                                                            <PopoverContent className="w-fit">
+                                                                                <div className="flex w-full flex-col">
+                                                                                    <Dialog>
+                                                                                        <DialogTrigger asChild>
+                                                                                            <Button
+                                                                                                variant={'ghost'}
+                                                                                                className="flex w-full justify-start text-red-500 hover:text-red-500"
+                                                                                            >
+                                                                                                <XCircle className="" size={16} />
+                                                                                                <span className="ml-1 text-sm">
+                                                                                                    Remove from Group Chat
+                                                                                                </span>
+                                                                                            </Button>
+                                                                                        </DialogTrigger>
+                                                                                        <DialogContent className="sm:max-w-[425px]">
+                                                                                            <DialogHeader>
+                                                                                                <DialogTitle className="text-center">
+                                                                                                    Remove Member
+                                                                                                </DialogTitle>
+                                                                                                <DialogDescription className="">
+                                                                                                    Are you sure you want to remove{' '}
+                                                                                                    <strong className="text-red-500">
+                                                                                                    
+                                                                                                        {user.user.name}
+                                                                                                    </strong>{' '}
+                                                                                                    from this group chat?
+                                                                                                </DialogDescription>
+                                                                                            </DialogHeader>
+                                                                                            <DialogFooter className="text-center">
+                                                                                                <Button
+                                                                                                    form="remove-member-form"
+                                                                                                    variant={'destructive'}
+                                                                                                    type="submit"
+                                                                                                    onClick={() =>setSelectedUserId(user.user.id)}
+                                                                                                    disabled={processing}
+                                                                                                >
+                                                                                                    {processing ? (
+                                                                                                        <div className="flex items-center gap-2">
+                                                                                                            <LoaderCircle className="animate-spin" />
+                                                                                                            Removing Member...
+                                                                                                        </div>
+                                                                                                    ) : (
+                                                                                                        'Yes, I confirm.'
+                                                                                                    )}
+                                                                                                </Button>
+                                                                                            </DialogFooter>
+                                                                                        </DialogContent>
+                                                                                    </Dialog>
+                                                                                </div>
+                                                                            </PopoverContent>
+                                                                        </Popover>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <DialogFooter>
-                                                <Button type="submit">Add</Button>
-                                            </DialogFooter>
+                                            </form>
+                                            <form id="remove-member-form" className='hidden' onSubmit={removeMemberFromGroupChat}></form>
                                         </DialogContent>
                                     </Dialog>
                                     <hr />
-                                    <Button variant={'ghost'} className="flex w-full justify-start text-red-500 hover:text-red-500">
-                                        <DoorOpen size={16} />
-                                        <span className="ml-2">Leave Group Chat</span>
-                                    </Button>
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button variant={'ghost'} className="flex w-full justify-start text-red-500 hover:text-red-500">
+                                                <DoorOpen size={16} />
+                                                <span className="ml-2">Leave Group Chat</span>
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent className="sm:max-w-[425px]">
+                                            <DialogHeader>
+                                                <DialogTitle className="text-center">Leave Group Chat</DialogTitle>
+                                                <DialogDescription className="text-center">
+                                                    Are you sure you want to leave this group chat?
+                                                </DialogDescription>
+                                            </DialogHeader>
+                                            <DialogFooter className="text-center">
+                                                <form onSubmit={leaveGroupChat}>
+                                                    <Button variant={'destructive'} type="submit" disabled={processing}>
+                                                        {processing ? (
+                                                            <div className="flex items-center gap-2">
+                                                                <LoaderCircle className="animate-spin" />
+                                                                Leaving Group Chat...
+                                                            </div>
+                                                        ) : (
+                                                            'Yes, I confirm.'
+                                                        )}
+                                                    </Button>
+                                                </form>
+                                            </DialogFooter>
+                                        </DialogContent>
+                                    </Dialog>
                                 </div>
                             </PopoverContent>
                         </Popover>
@@ -333,7 +576,6 @@ export default function Show({ messages, user, users, groups, conversation_name 
                                         }
                                     }}
                                 />
-
                                 <Button className="self-end" disabled={data.message === '' || processing}>
                                     {!processing ? <SendIcon /> : <CircleDashed className="h-4 w-4 animate-spin" />}
                                 </Button>

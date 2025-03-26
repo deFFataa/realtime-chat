@@ -22,6 +22,8 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
         members: '',
     });
 
+    const [groupList, setGroupList] = useState(groups)
+
     const auth_user = usePage<{ auth: { user: { id: number; name: string } } }>().props.auth.user;
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -48,85 +50,102 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
             forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
             enabledTransports: ['ws', 'wss'],
         });
-
-        echo.private(`display-created-group-chat-${auth_user.id}`).listen('DisplayCreatedGroupChat', (e: any) => {
-            console.log(e);
-        });
+    
+        echo.private(`added-member-to-group-chat-${auth_user.id}`)
+            .listen('AddedMemberToGroupChat', (e: any) => {                
+                toast(`You were added to ${e.conversation_name}`);                
+                setGroupList((prevGroupList) => {
+                    const updatedList = [...prevGroupList, e];
+                    return updatedList;
+                });
+            });
+    
+        return () => {
+            echo.disconnect();
+        };
     }, []);
+    
+    // console.log(groupList);
+    
+    
 
     return (
         <div className="grid flex-1 grid-cols-3">
-            <div className="flex flex-col flex-wrap border-r p-4 text-sm">
-                <div className="flex justify-between">
-                    <h1 className="text-lg font-bold">Chats</h1>
-                    <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                        <SheetTrigger asChild>
-                            <Button>
-                                New Group <PlusIcon />{' '}
-                            </Button>
-                        </SheetTrigger>
+            <div className="flex max-h-screen flex-col overflow-auto overscroll-contain border-r text-sm">
+                <div className="bg-background -500 sticky top-0 p-4">
+                    <div className="flex justify-between">
+                        <h1 className="text-lg font-bold">Chats</h1>
+                        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                            <SheetTrigger asChild>
+                                <Button>
+                                    New Group <PlusIcon />{' '}
+                                </Button>
+                            </SheetTrigger>
 
-                        <SheetContent>
-                            <form onSubmit={handleSubmit} className="mb-3">
-                                <SheetHeader>
-                                    <SheetTitle>Create Group Conversation</SheetTitle>
-                                    <SheetDescription>Chat with multiple users at the same time</SheetDescription>
-                                </SheetHeader>
+                            <SheetContent>
+                                <form onSubmit={handleSubmit} className="mb-3">
+                                    <SheetHeader>
+                                        <SheetTitle>Create Group Conversation</SheetTitle>
+                                        <SheetDescription>Chat with multiple users at the same time</SheetDescription>
+                                    </SheetHeader>
 
-                                <div className="mt-3 grid gap-2 px-4">
-                                    <div className="grid items-center gap-4">
-                                        <div className="grid w-full items-center gap-1.5">
-                                            <Label htmlFor="name">Group Name</Label>
-                                            <Input
-                                                type="name"
-                                                id="name"
-                                                name="converation_name"
-                                                placeholder="E.g Division I"
-                                                onChange={(e) => setData('conversation_name', e.target.value)}
-                                                className={`${group_name_input?.conversation_name ? 'border border-red-500' : ''}`}
-                                            />
-                                            <p className="text-xs text-red-500">{group_name_input?.conversation_name}</p>
+                                    <div className="mt-3 grid gap-2 px-4">
+                                        <div className="grid items-center gap-4">
+                                            <div className="grid w-full items-center gap-1.5">
+                                                <Label htmlFor="name">Group Name</Label>
+                                                <Input
+                                                    type="name"
+                                                    id="name"
+                                                    name="converation_name"
+                                                    placeholder="E.g Division I"
+                                                    onChange={(e) => setData('conversation_name', e.target.value)}
+                                                    className={`${group_name_input?.conversation_name ? 'border border-red-500' : ''}`}
+                                                />
+                                                <p className="text-xs text-red-500">{group_name_input?.conversation_name}</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="place-self-end">
-                                    <SheetFooter className="mt-0">
-                                        <Button disabled={processing}>
-                                            {processing ? (
-                                                <div className="flex items-center gap-2">
-                                                    <LoaderCircleIcon className="animate-spin" /> Creating ...
-                                                </div>
-                                            ) : (
-                                                'Create Group'
-                                            )}
-                                        </Button>
-                                    </SheetFooter>
-                                </div>
-                            </form>
-                        </SheetContent>
-                    </Sheet>
+                                    <div className="place-self-end">
+                                        <SheetFooter className="mt-0">
+                                            <Button disabled={processing}>
+                                                {processing ? (
+                                                    <div className="flex items-center gap-2">
+                                                        <LoaderCircleIcon className="animate-spin" /> Creating ...
+                                                    </div>
+                                                ) : (
+                                                    'Create Group'
+                                                )}
+                                            </Button>
+                                        </SheetFooter>
+                                    </div>
+                                </form>
+                            </SheetContent>
+                        </Sheet>
+                    </div>
+                    <div className="relative py-4">
+                        <span className="absolute inset-y-0 left-1 grid w-8 place-content-center">
+                            <SearchIcon size={14} />
+                        </span>
+                        <Input type="text" id="Search" name="search" placeholder="Search" className="pl-9" />
+                    </div>
                 </div>
-                <div className="relative py-4">
-                    <span className="absolute inset-y-0 left-1 grid w-8 place-content-center">
-                        <SearchIcon size={14} />
-                    </span>
-                    <Input type="text" id="Search" name="search" placeholder="Search" className="pl-9" />
-                </div>
-                <h6 className="text-foreground/70 mb-1 text-xs">All</h6>
+                <h6 className="text-foreground/70 mb-1 px-2 text-xs">All</h6>
                 <Link
                     href="/chat/all"
                     className={`duration:100 w-full rounded border-b p-4 font-medium ease-in ${url === '/chat/all' ? 'text-secondary bg-primary' : 'hover:bg-secondary hover:text-primary'} `}
+                    preserveState
                 >
                     Global Chat
                 </Link>
-                {groups?.length > 0 && (
+                {groupList?.length > 0 && (
                     <>
-                        <h6 className="text-foreground/70 mt-3 mb-1 text-xs">Groups</h6>
-                        {groups?.map((group) => (
+                        <h6 className="text-foreground/70 mt-3 mb-1 px-2 text-xs">Groups</h6>
+                        {groupList?.map((group) => (
                             <Link
                                 href={`/chat/group/${group.conversation.id}`}
                                 key={group.conversation.id}
                                 className={`duration:100 w-full rounded border-b p-4 font-medium ease-in ${url === `/chat/group/${group.conversation.id}` ? 'text-secondary bg-primary' : 'hover:bg-secondary hover:text-primary'}`}
+                                preserveState
                             >
                                 {ProperName(group.conversation.conversation_name)}
                             </Link>
@@ -135,12 +154,13 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
                 )}
                 {users?.length > 0 && (
                     <>
-                        <h6 className="text-foreground/70 mt-3 mb-1 text-xs">Users</h6>
+                        <h6 className="text-foreground/70 mt-3 mb-1 px-2 text-xs">Users</h6>
                         {users?.map((user: Users) => (
                             <Link
                                 href={`/chat/${user.id}`}
                                 key={user.id}
                                 className={`duration:100 w-full rounded border-b p-4 font-medium ease-in ${url === `/chat/${user.id}` ? 'text-secondary bg-primary' : 'hover:bg-secondary hover:text-primary'}`}
+                                preserveState
                             >
                                 {ProperName(user.name)}
                             </Link>

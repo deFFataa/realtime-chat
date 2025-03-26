@@ -157,12 +157,24 @@
     body {
         @apply bg-background text-foreground;
     }
-}
+}   
 
 .scrollbar-hide::-webkit-scrollbar {
-    display: none;
+    transition: opacity 0.3s ease;
 }
+
+.scrollbar-hide:hover::-webkit-scrollbar,
+.scrollbar-hide:active::-webkit-scrollbar {
+    opacity: 1;
+}   
+
 .scrollbar-hide {
     -ms-overflow-style: none;
-    scrollbar-width: none;
+    scrollbar-width: 14px; /* Keeps scrollbar available */
+}
+
+.scrollbar-hide:hover,
+.scrollbar-hide:active {
+    -ms-overflow-style: auto;
+    /* scrollbar-width: auto; */
 }
