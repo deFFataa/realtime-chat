@@ -94,6 +94,7 @@ class ConversationController extends Controller
         return Inertia::render("conversation/show", [
             "conversation" => Conversation::find($id),
             'users' => User::whereNotIn('id', GroupMember::where('conversation_id', $id)->pluck('user_id'))->where('id', '!=', $userId)->get(),
+            'users_sidebar' => User::all()->except(auth()->id()),
             'groups' => GroupMember::with(['user', 'conversation'])->where('user_id', $userId)->get(),
             'group_members' => GroupMember::with('user')->where('conversation_id', $id)->get(),
             'conversation_name' => Conversation::find($id)->conversation_name,
@@ -175,5 +176,19 @@ class ConversationController extends Controller
         return redirect()->back();
 
     }
+
+    public function update_conversation_name($id, Request $request)
+    {
+        $conversation = Conversation::findOrFail($id);
+    
+        $data = $request->validate([
+            'conversation_name' => ['required'],
+        ]);
+    
+        $conversation->update($data);
+
+        return redirect()->back();
+    }
+    
 
 }

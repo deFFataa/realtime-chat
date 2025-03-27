@@ -22,7 +22,7 @@ export default function Chat({ users, groups }: Props) {
                     <div className="relative">
                         <h1 className="absolute bottom-7 left-0 right-0 text-center text-xl font-bold">eCollab</h1>
 
-                        <img src="images/chat-bg.png" width={400} alt="" className="" />
+                        <img src="images/chat-bg.gif" width={400} alt="" />
                         <h1 className='text-center font-medium'>Chat With Someone</h1>
                     </div>
                 </div>

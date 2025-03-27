@@ -2,14 +2,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { ProperName } from '@/lib/utils';
-import { Props, Users } from '@/types/UserTypes';
+import { Props } from '@/types/UserTypes';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import Echo from 'laravel-echo';
 import { LoaderCircleIcon, PlusIcon, SearchIcon } from 'lucide-react';
 import Pusher from 'pusher-js';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+
 (window as any).Pusher = Pusher;
 
 const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
@@ -22,8 +22,7 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
         members: '',
     });
 
-    const [groupList, setGroupList] = useState(groups)
-
+    const [groupList, setGroupList] = useState(groups);
     const auth_user = usePage<{ auth: { user: { id: number; name: string } } }>().props.auth.user;
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -50,53 +49,78 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
             forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
             enabledTransports: ['ws', 'wss'],
         });
-    
-        echo.private(`added-member-to-group-chat-${auth_user.id}`)
-            .listen('AddedMemberToGroupChat', (e: any) => {                
-                toast(`You were added to ${e.conversation_name}`);                
-                setGroupList((prevGroupList) => {
-                    const updatedList = [...prevGroupList, e];
-                    return updatedList;
-                });
-            });
-    
+
+        echo.private(`added-member-to-group-chat-${auth_user.id}`).listen('AddedMemberToGroupChat', (e: any) => {
+            toast(`You were added to ${e.conversation_name}`);
+            setGroupList((prevGroupList) => [...prevGroupList, e]);
+        });
+
         return () => {
             echo.disconnect();
         };
     }, []);
-    
-    // console.log(groupList);
-    
-    
+
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filteredResults, setFilteredResults] = useState<{ type: string; item: any }[]>([]);
+
+    useEffect(() => {
+        if (searchQuery.trim() === '') {
+            setFilteredResults([]);
+        } else {
+            const filteredGroups = groups
+                .filter(
+                    (group) =>
+                        group.conversation?.conversation_name &&
+                        group.conversation.conversation_name.toLowerCase().includes(searchQuery.toLowerCase()),
+                )
+                .map((group) => ({ type: 'group', item: group.conversation }));
+
+            const filteredUsers = users
+                .filter((user) => user.name && user.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map((user) => ({ type: 'user', item: user }));
+
+            const globalMatch = 'global chat'.includes(searchQuery.toLowerCase())
+                ? [{ type: 'global', item: { name: 'Global Chat', id: 'all' } }]
+                : [];
+
+            const validResults = [
+                ...globalMatch,
+                ...filteredGroups.filter((item) => item.item.conversation_name?.trim()),
+                ...filteredUsers.filter((item) => item.item.name?.trim()),
+            ];
+
+            console.log(filteredGroups);
+
+            setFilteredResults(validResults);
+        }
+    }, [searchQuery, users, groups]);
 
     return (
         <div className="grid flex-1 grid-cols-3">
-            <div className="flex max-h-screen flex-col overflow-auto overscroll-contain border-r text-sm">
+            <div className="flex max-h-screen flex-col overflow-auto border-r text-sm">
                 <div className="bg-background -500 sticky top-0 p-4">
                     <div className="flex justify-between">
                         <h1 className="text-lg font-bold">Chats</h1>
                         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                             <SheetTrigger asChild>
                                 <Button>
-                                    New Group <PlusIcon />{' '}
+                                    New Group <PlusIcon />
                                 </Button>
                             </SheetTrigger>
-
                             <SheetContent>
                                 <form onSubmit={handleSubmit} className="mb-3">
                                     <SheetHeader>
                                         <SheetTitle>Create Group Conversation</SheetTitle>
                                         <SheetDescription>Chat with multiple users at the same time</SheetDescription>
                                     </SheetHeader>
-
                                     <div className="mt-3 grid gap-2 px-4">
                                         <div className="grid items-center gap-4">
                                             <div className="grid w-full items-center gap-1.5">
                                                 <Label htmlFor="name">Group Name</Label>
                                                 <Input
-                                                    type="name"
+                                                    type="text"
                                                     id="name"
-                                                    name="converation_name"
+                                                    name="conversation_name"
                                                     placeholder="E.g Division I"
                                                     onChange={(e) => setData('conversation_name', e.target.value)}
                                                     className={`${group_name_input?.conversation_name ? 'border border-red-500' : ''}`}
@@ -126,45 +150,74 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
                         <span className="absolute inset-y-0 left-1 grid w-8 place-content-center">
                             <SearchIcon size={14} />
                         </span>
-                        <Input type="text" id="Search" name="search" placeholder="Search" className="pl-9" />
+                        <Input
+                            type="text"
+                            id="Search"
+                            name="search"
+                            placeholder="Search groups or users."
+                            className="pl-9"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
                     </div>
                 </div>
-                <h6 className="text-foreground/70 mb-1 px-2 text-xs">All</h6>
-                <Link
-                    href="/chat/all"
-                    className={`duration:100 w-full rounded border-b p-4 font-medium ease-in ${url === '/chat/all' ? 'text-secondary bg-primary' : 'hover:bg-secondary hover:text-primary'} `}
-                    preserveState
-                >
-                    Global Chat
-                </Link>
-                {groupList?.length > 0 && (
-                    <>
-                        <h6 className="text-foreground/70 mt-3 mb-1 px-2 text-xs">Groups</h6>
-                        {groupList?.map((group) => (
+
+                {searchQuery ? (
+                    filteredResults.length === 0 ? (
+                        <p className="px-6 text-sm">No results found. Try a different keyword.</p>
+                    ) : (
+                        filteredResults.map(({ type, item }) => (
                             <Link
-                                href={`/chat/group/${group.conversation.id}`}
-                                key={group.conversation.id}
-                                className={`duration:100 w-full rounded border-b p-4 font-medium ease-in ${url === `/chat/group/${group.conversation.id}` ? 'text-secondary bg-primary' : 'hover:bg-secondary hover:text-primary'}`}
+                                key={item.id}
+                                href={type === 'global' ? '/chat/all' : type === 'group' ? `/chat/group/${item.id}` : `/chat/${item.id}`}
+                                className={`hover:bg-secondary hover:text-primary w-full rounded border-b p-4 font-medium duration-100 ease-in`}
                                 preserveState
                             >
-                                {ProperName(group.conversation.conversation_name)}
+                                {type === 'group' ? item.conversation_name : item.name}
                             </Link>
-                        ))}
-                    </>
-                )}
-                {users?.length > 0 && (
+                        ))
+                    )
+                ) : (
                     <>
-                        <h6 className="text-foreground/70 mt-3 mb-1 px-2 text-xs">Users</h6>
-                        {users?.map((user: Users) => (
-                            <Link
-                                href={`/chat/${user.id}`}
-                                key={user.id}
-                                className={`duration:100 w-full rounded border-b p-4 font-medium ease-in ${url === `/chat/${user.id}` ? 'text-secondary bg-primary' : 'hover:bg-secondary hover:text-primary'}`}
-                                preserveState
-                            >
-                                {ProperName(user.name)}
-                            </Link>
-                        ))}
+                        <h6 className="text-foreground/70 mb-1 px-2 text-xs">All</h6>
+                        <Link
+                            href="/chat/all"
+                            className={`w-full rounded border-b p-4 font-medium ${url === '/chat/all' ? 'bg-primary text-secondary' : 'hover:bg-secondary hover:text-primary'} `}
+                        >
+                            Global Chat
+                        </Link>
+
+                        {groups.length > 0 && (
+                            <>
+                                <h6 className="text-foreground/70 mt-3 mb-1 px-2 text-xs">Groups</h6>
+                                {groups.map((group) => (
+                                    <Link
+                                        href={`/chat/group/${group.conversation.id}`}
+                                        key={group.conversation.id}
+                                        className={`duration:100 w-full rounded border-b p-4 font-medium ease-in ${url === `/chat/group/${group.conversation.id}` ? 'text-secondary bg-primary' : 'hover:bg-secondary hover:text-primary'}`}
+                                        preserveState
+                                    >
+                                        {group.conversation.conversation_name}
+                                    </Link>
+                                ))}
+                            </>
+                        )}
+
+                        {users.length > 0 && (
+                            <>
+                                <h6 className="text-foreground/70 mt-3 mb-1 px-2 text-xs">Users</h6>
+                                {users.map((user) => (
+                                    <Link
+                                        key={user.id}
+                                        href={`/chat/${user.id}`}
+                                        className={`w-full rounded border-b p-4 font-medium ${url === `/chat/${user.id}` ? 'bg-primary text-secondary' : 'hover:bg-secondary hover:text-primary'} `}
+                                        preserveState
+                                    >
+                                        {user.name}
+                                    </Link>
+                                ))}
+                            </>
+                        )}
                     </>
                 )}
             </div>
