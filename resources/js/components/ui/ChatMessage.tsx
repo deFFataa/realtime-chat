@@ -11,9 +11,10 @@ interface Props {
     variant?: 'sender' | 'receiver';
     joinedAt?: any;
     sent_date: string;
+    id: number;
 }
 
-const ChatMessage = ({ message, name = 'No Name', variant = 'sender', joinedAt = 'Unknown', sent_date = 'Uknown' }: Props) => {
+const ChatMessage = ({ message, name = 'No Name', variant = 'sender', joinedAt = 'Unknown', sent_date = 'Uknown', id }: Props) => {
     if (variant === 'sender') {
         return (
             <div className="flex justify-end gap-2">
@@ -66,7 +67,7 @@ const ChatMessage = ({ message, name = 'No Name', variant = 'sender', joinedAt =
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger className="text-left" style={{ textWrap: 'wrap' }} asChild>
-                                    <div className="bg-secondary whitespace-pre text-foreground shadow w-fit max-w-xl rounded-md p-2 text-sm/6 font-medium">{message}</div>
+                                    <div key={id} className="bg-secondary whitespace-pre text-foreground shadow w-fit max-w-xl rounded-md p-2 text-sm/6 font-medium">{message}</div>
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     <p>Sent: {sent_date}</p>

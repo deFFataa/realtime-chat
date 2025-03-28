@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import Dot from '@/components/ui/Dot';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -22,16 +23,20 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
         members: '',
     });
 
-    const [groupList, setGroupList] = useState(groups);
+    const [groupList, setGroupList] = useState(groups); // ✅ Use this for dynamic updates
     const auth_user = usePage<{ auth: { user: { id: number; name: string } } }>().props.auth.user;
 
+    // ✅ Create Group Function
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         post(route('conversation.store'), {
-            onSuccess: () => {
+            onSuccess: (response) => {
                 reset();
                 setIsSheetOpen(false);
                 toast('Group created successfully!');
+
+                // ✅ Append newly created group to state immediately
+                setGroupList((prev) => [...prev, response]);
             },
             onError: () => {
                 toast('Something went wrong. Please try again');
@@ -39,6 +44,7 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
         });
     };
 
+    // ✅ Listen for Group Additions & Update State
     useEffect(() => {
         const echo = new Echo({
             broadcaster: 'reverb',
@@ -52,6 +58,8 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
 
         echo.private(`added-member-to-group-chat-${auth_user.id}`).listen('AddedMemberToGroupChat', (e: any) => {
             toast(`You were added to ${e.conversation_name}`);
+
+            // ✅ Ensure the new group is added to the state
             setGroupList((prevGroupList) => [...prevGroupList, e]);
         });
 
@@ -60,6 +68,10 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
         };
     }, []);
 
+    useEffect(() => {
+        console.log('Updated groupList:', groupList);
+    }, [groupList]);
+
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredResults, setFilteredResults] = useState<{ type: string; item: any }[]>([]);
 
@@ -67,7 +79,7 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
         if (searchQuery.trim() === '') {
             setFilteredResults([]);
         } else {
-            const filteredGroups = groups
+            const filteredGroups = groupList
                 .filter(
                     (group) =>
                         group.conversation?.conversation_name &&
@@ -83,17 +95,9 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
                 ? [{ type: 'global', item: { name: 'Global Chat', id: 'all' } }]
                 : [];
 
-            const validResults = [
-                ...globalMatch,
-                ...filteredGroups.filter((item) => item.item.conversation_name?.trim()),
-                ...filteredUsers.filter((item) => item.item.name?.trim()),
-            ];
-
-            console.log(filteredGroups);
-
-            setFilteredResults(validResults);
+            setFilteredResults([...globalMatch, ...filteredGroups, ...filteredUsers]);
         }
-    }, [searchQuery, users, groups]);
+    }, [searchQuery, users, groupList]);
 
     return (
         <div className="grid flex-1 grid-cols-3">
@@ -179,25 +183,29 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
                     )
                 ) : (
                     <>
-                        <h6 className="text-foreground/70 mb-1 px-2 text-xs">All</h6>
-                        <Link
-                            href="/chat/all"
-                            className={`w-full rounded border-b p-4 font-medium ${url === '/chat/all' ? 'bg-primary text-secondary' : 'hover:bg-secondary hover:text-primary'} `}
-                        >
-                            Global Chat
-                        </Link>
+                        <>
+                            <h6 className="text-foreground/70 mb-1 px-2 text-xs">All</h6>
+                            <Link
+                                href="/chat/all"
+                                className={`flex w-full justify-between rounded border-b p-4 font-medium ${url === '/chat/all' ? 'bg-primary text-secondary' : 'hover:bg-secondary hover:text-primary'} `}
+                            >
+                                Global Chat
+                                {/* <Dot /> */}
+                            </Link>
+                        </>
 
                         {groups.length > 0 && (
                             <>
                                 <h6 className="text-foreground/70 mt-3 mb-1 px-2 text-xs">Groups</h6>
-                                {groups.map((group) => (
+                                {groupList.map((group) => (
                                     <Link
                                         href={`/chat/group/${group.conversation.id}`}
                                         key={group.conversation.id}
-                                        className={`duration:100 w-full rounded border-b p-4 font-medium ease-in ${url === `/chat/group/${group.conversation.id}` ? 'text-secondary bg-primary' : 'hover:bg-secondary hover:text-primary'}`}
+                                        className={`duration:100 flex w-full justify-between rounded border-b p-4 font-medium ease-in ${url === `/chat/group/${group.conversation.id}` ? 'text-secondary bg-primary' : 'hover:bg-secondary hover:text-primary'}`}
                                         preserveState
                                     >
                                         {group.conversation.conversation_name}
+                                        {/* <Dot /> */}
                                     </Link>
                                 ))}
                             </>
@@ -210,10 +218,11 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
                                     <Link
                                         key={user.id}
                                         href={`/chat/${user.id}`}
-                                        className={`w-full rounded border-b p-4 font-medium ${url === `/chat/${user.id}` ? 'bg-primary text-secondary' : 'hover:bg-secondary hover:text-primary'} `}
+                                        className={`flex w-full justify-between rounded border-b p-4 font-medium ${url === `/chat/${user.id}` ? 'bg-primary text-secondary' : 'hover:bg-secondary hover:text-primary'} `}
                                         preserveState
                                     >
                                         {user.name}
+                                        {/* <Dot /> */}
                                     </Link>
                                 ))}
                             </>

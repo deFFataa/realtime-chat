@@ -77,6 +77,20 @@ export default function Show({ messages, conversation, users, groups, conversati
         conversation_name: conversation_name,
     });
 
+    useEffect(() => {
+        setChats(messages.data.slice().reverse());
+        setOldMessages(messages.data);
+        setPage(messages.current_page);
+        setHasMore(messages.next_page_url !== null);
+
+        setData({
+            message: '',
+            conversation_id: conversation.id,
+            users: [] as any,
+            conversation_name: conversation_name,
+        });
+    }, [conversation.id, messages]);
+
     const toggleUserSelection = (selectedUser: any) => {
         const usersArray = Array.isArray(data.users) ? data.users : [];
         const exists = usersArray.some((u: any) => u.id === selectedUser.id);
@@ -141,7 +155,6 @@ export default function Show({ messages, conversation, users, groups, conversati
 
         try {
             echo.private(`group-chat.${conversation.id}`).listen('GroupChat', (event: any) => {
-                console.log(event);
                 setChats((prevChats: Message[]) => [...prevChats, event]);
             });
 
@@ -151,7 +164,7 @@ export default function Show({ messages, conversation, users, groups, conversati
         } catch (error) {
             console.log(error);
         }
-    }, []);
+    }, [conversation.id]);
 
     const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -643,6 +656,7 @@ export default function Show({ messages, conversation, users, groups, conversati
                                     <div className="flex flex-col gap-4">
                                         {chats?.map((chat: any) => (
                                             <ChatMessage
+                                                id={chat.id}
                                                 key={chat.id}
                                                 name={chat.name ? chat.name : chat.user?.name}
                                                 message={<span dangerouslySetInnerHTML={{ __html: chat.message }} />}

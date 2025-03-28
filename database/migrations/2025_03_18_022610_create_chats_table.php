@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('intended')->nullable();
             $table->unsignedBigInteger('conversation_id')->nullable();
             $table->foreign('conversation_id')->references('id')->on('conversations')->onDelete('cascade');
+            $table->boolean('is_read')->default(false);
             $table->timestamps();
         });
     }

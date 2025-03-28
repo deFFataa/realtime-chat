@@ -21,9 +21,8 @@ export default function Chat({ users, groups }: Props) {
                 <div className="grid h-[calc(100vh-100px)] place-items-center">
                     <div className="relative">
                         <h1 className="absolute bottom-7 left-0 right-0 text-center text-xl font-bold">eCollab</h1>
-
-                        <img src="images/chat-bg.gif" width={400} alt="" />
-                        <h1 className='text-center font-medium'>Chat With Someone</h1>
+                        <img src="images/chat-bg-1.png" width={500} alt="" />
+                        <h1 className='text-center font-medium'>Collaborate with your team or chat with someone</h1>
                     </div>
                 </div>
             </ChatSidebarLayout>

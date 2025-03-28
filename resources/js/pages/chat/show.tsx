@@ -48,7 +48,7 @@ export default function Show({ messages, user, users, groups }: Props) {
         e.preventDefault();
         post(route('chat.store'), {
             onSuccess: () => {
-                reset()
+                reset();
             },
             onError: () => {
                 toast('Something went wrong. Please try again');
@@ -149,8 +149,6 @@ export default function Show({ messages, user, users, groups }: Props) {
             const response = await axios.get(`./${user.id}?page=${page + 1}`);
             const newMessages = response.data.messages;
 
-            console.log(newMessages);
-
             if (!newMessages || !newMessages.data) {
                 console.error('Invalid response structure:', response.data);
                 return;
@@ -209,6 +207,18 @@ export default function Show({ messages, user, users, groups }: Props) {
         };
     }, [page, hasMore, isLoading]);
 
+    useEffect(() => {
+        setChats(messages.data.slice().reverse());
+        setOldMessages(messages.data);
+        setPage(messages.current_page);
+        setHasMore(messages.next_page_url !== null);
+
+        setData({
+            message: '',
+            to: user.id,
+        });
+    }, [user.id, messages]);
+
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Chat',
@@ -246,6 +256,7 @@ export default function Show({ messages, user, users, groups }: Props) {
                                     <div className="flex flex-col gap-4">
                                         {chats?.map((chat: any) => (
                                             <ChatMessage
+                                                id={chat.id}
                                                 key={chat.id}
                                                 name={chat.name ? chat.name : chat.user?.name}
                                                 message={<span dangerouslySetInnerHTML={{ __html: chat.message }} />}
@@ -265,7 +276,7 @@ export default function Show({ messages, user, users, groups }: Props) {
                                 <Textarea
                                     name="message"
                                     ref={chatInput}
-                                    className="w-full min-h-auto max-h-[100px] flex-1 resize-none break-words break-all overflow-x-hidden h-full whitespace-pre-wrap"
+                                    className="h-full max-h-[100px] min-h-auto w-full flex-1 resize-none overflow-x-hidden break-words break-all whitespace-pre-wrap"
                                     onChange={(e) => setData('message', e.target.value)}
                                     placeholder="Type your message here.."
                                     value={data.message}
@@ -278,7 +289,7 @@ export default function Show({ messages, user, users, groups }: Props) {
                                     disabled={processing}
                                 />
 
-                                <Button className='self-end' disabled={data.message === '' || processing}>
+                                <Button className="self-end" disabled={data.message === '' || processing}>
                                     {!processing ? <SendIcon /> : <CircleDashed className="h-4 w-4 animate-spin" />}
                                 </Button>
                             </div>
