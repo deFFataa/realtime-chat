@@ -38,6 +38,19 @@ Broadcast::channel('total-users', function (User $user) {
     return true;
 });
 
+Broadcast::channel('total-posts', function (User $user) {
+    return true;
+});
+
+Broadcast::channel('active-users', function (User $user) {
+    return true;
+});
+
+Broadcast::channel('new-user', function (User $user) {
+    return true;
+});
+
+
 Broadcast::channel('group-chat.{id}', function (User $user) {
     return true;
 });

@@ -190,7 +190,7 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
                                 className={`flex w-full justify-between rounded border-b p-4 font-medium ${url === '/chat/all' ? 'bg-primary text-secondary' : 'hover:bg-secondary hover:text-primary'} `}
                             >
                                 Global Chat
-                                {/* <Dot /> */}
+                                {/* <Dot /> To be implemented next week */} 
                             </Link>
                         </>
 

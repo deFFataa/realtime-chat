@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Events\NewUser;
+use App\Events\TotalActiveUsers;
+use App\Events\TotalUsers;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
@@ -40,7 +43,12 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'is_loggedin' => true,
         ]);
+
+        broadcast(new TotalUsers());
+        broadcast(new TotalActiveUsers());
+        broadcast(new NewUser($user));
 
         event(new Registered($user));
 

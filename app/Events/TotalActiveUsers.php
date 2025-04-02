@@ -12,7 +12,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TotalUsers implements ShouldBroadcastNow
+class TotalActiveUsers implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -21,12 +21,15 @@ class TotalUsers implements ShouldBroadcastNow
      */
     public function __construct()
     {
-        
+        //
     }
 
-    public function broadcastWith(){
+    public function broadcastWith()
+    {
         return [
-            'total_users' => User::where('role', 'user')->count()
+            "total_active_users" => User::where('role', 'user')
+                ->where('is_loggedin', true)
+                ->count(),
         ];
     }
 
@@ -38,7 +41,7 @@ class TotalUsers implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new Channel('total-users'),
+            new Channel('active-users'),
         ];
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Events;
 
-use App\Models\User;
+use App\Models\Post;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -12,7 +12,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TotalUsers implements ShouldBroadcastNow
+class TotalPosts implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -21,12 +21,12 @@ class TotalUsers implements ShouldBroadcastNow
      */
     public function __construct()
     {
-        
+        //
     }
 
     public function broadcastWith(){
         return [
-            'total_users' => User::where('role', 'user')->count()
+            "total_posts" => Post::count(),
         ];
     }
 
@@ -38,7 +38,7 @@ class TotalUsers implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new Channel('total-users'),
+            new Channel('total-posts'),
         ];
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Events\NewUser;
+use App\Events\TotalActiveUsers;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
@@ -30,17 +32,29 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
-
+        // Update the 'is_loggedin' column to true
         $request->session()->regenerate();
+
+        Auth::user()->update(['is_loggedin' => true]);
+        broadcast(new TotalActiveUsers());
+
+        if (Auth::user()->role == 'admin') {
+            return redirect()->intended(route('admin.dashboard', absolute: false));
+        }
+
+
 
         return redirect()->intended(route('dashboard', absolute: false));
     }
+
 
     /**
      * Destroy an authenticated session.
      */
     public function destroy(Request $request): RedirectResponse
     {
+        Auth::user()->update(['is_loggedin' => false]);
+        broadcast(new TotalActiveUsers());
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

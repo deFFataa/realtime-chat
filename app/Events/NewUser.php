@@ -12,21 +12,24 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TotalUsers implements ShouldBroadcastNow
+class NewUser implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
      * Create a new event instance.
      */
-    public function __construct()
+    public function __construct(public User $user)
     {
-        
+        //
     }
 
     public function broadcastWith(){
         return [
-            'total_users' => User::where('role', 'user')->count()
+            "id" => $this->user->id,
+            "name" => $this->user->name,
+            "email"=> $this->user->email,
+            "created_at" => $this->user->created_at
         ];
     }
 
@@ -38,7 +41,7 @@ class TotalUsers implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new Channel('total-users'),
+            new Channel('new-user'),
         ];
     }
 }
