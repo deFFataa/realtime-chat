@@ -34,7 +34,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         if (Auth::user()->role == 'user') {
             abort(403);
         }
-        return Inertia::render('admin/dashboard', [
+        return Inertia::render('admin/dashboard/dashboard', [
             'new_users' => User::whereBetween('created_at', [now()->subWeek(), now()])->where('role', 'user')->latest()->get(),
             'users_count' => User::where('role', 'user')->count(),
             'posts_count' => Post::count(),
