@@ -28,9 +28,7 @@ export default function Dashboard({ users_count, post_count, new_users, active_u
     const [totalPosts, setTotalPosts] = useState(post_count || 0);
     const [totalActiveUsers, setTotalActiveUsers] = useState(active_users || 0);
     const [newUser, setNewUser] = useState(new_users);
-    const [allUsers, setAllUsers] = useState(all_users);
-
-    
+    const [allUsers, setAllUsers] = useState(all_users);    
 
     useEffect(() => {
         const echo = new Echo({

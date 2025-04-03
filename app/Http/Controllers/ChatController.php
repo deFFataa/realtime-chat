@@ -16,7 +16,6 @@ class ChatController extends Controller
 {
     public function all(Request $request)
     {
-        // broadcast(new GlobalChat());
 
         if($request->wantsJson()){
             return response()->json(['messages' => Chat::with('user')->where('intended', 'all')->latest()->paginate(10)]);
@@ -24,7 +23,7 @@ class ChatController extends Controller
 
         return Inertia::render("chat/all", [
             "messages" => Chat::with('user')->where('intended', 'all')->latest()->paginate(10),
-            'users' => User::all()->except(auth()->id()),
+            'users' => User::where('role', 'user')->whereNot('id', auth()->id())->get(['id','name']),
             'groups' => GroupMember::with(['user', 'conversation'])->where('user_id', auth()->id())->get()
         ]);
     }

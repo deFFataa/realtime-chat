@@ -70,12 +70,12 @@ const UserRegistrationOverTime = ({ all_users }: Props) => {
                     </CardHeader>
                     <CardContent>
                         <ResponsiveContainer width="100%" height={392}>
-                            <LineChart data={filteredData}>
+                            <LineChart data={filteredData} className='text-gray-700'>
                                 <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="date" tickFormatter={(value) => format(new Date(value), 'MMM dd')} />
+                                <XAxis className='text-gray-500' dataKey="date" tickFormatter={(value) => format(new Date(value), 'MMM dd')} />
                                 <YAxis />
                                 <Tooltip />
-                                <Line type="monotone" dataKey="users" stroke="#2563eb" strokeWidth={2} />
+                                <Line  dataKey="users" stroke="#2563eb" strokeWidth={2} />
                             </LineChart>
                         </ResponsiveContainer>
                     </CardContent>

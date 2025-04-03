@@ -16,7 +16,10 @@ import { toast } from 'sonner';
 
 interface Props {
     messages?: any;
-    users?: any;
+    users?: Array<{
+        id: number;
+        name: string;
+    }>;
     groups?: any;
 }
 
@@ -24,6 +27,8 @@ interface Message {
     id: number | string;
     user_id: number | string;
     message: string;
+    created_at?: string;
+    updated_at?: string;
 }
 
 interface User {
@@ -34,7 +39,9 @@ interface User {
     };
 }
 
-export default function GlobalChat({ messages, users, groups }: Props) {
+export default function GlobalChat({ messages = [], users = [], groups }: Props) {
+    console.log(groups);
+    
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Chat',
@@ -50,7 +57,6 @@ export default function GlobalChat({ messages, users, groups }: Props) {
         message: '',
         intended: 'all',
     });
-    
 
     const [chats, setChats] = useState(() => messages.data.slice().reverse());
     const chatInput = useRef<HTMLTextAreaElement>(null);
@@ -162,7 +168,6 @@ export default function GlobalChat({ messages, users, groups }: Props) {
                 return;
             }
 
-            // Reverse the fetched messages so that they are in ascending order
             const uniqueMessages = newMessages.data
                 .filter((newMessage: any) => {
                     return !oldMessages.some((oldMessage: any) => oldMessage.id === newMessage.id);
@@ -233,6 +238,7 @@ export default function GlobalChat({ messages, users, groups }: Props) {
                                             .reverse()
                                             .map((chat: any) => (
                                                 <ChatMessage
+                                                    id={chat.id}
                                                     name={chat.name ? chat.name : chat.user.name}
                                                     key={chat.id}
                                                     message={chat?.message}
@@ -254,7 +260,6 @@ export default function GlobalChat({ messages, users, groups }: Props) {
                                     </div>
                                 )}
                             </div>
-
                             <div className="mt-2 flex items-center gap-2">
                                 <Textarea
                                     name="message"

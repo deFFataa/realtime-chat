@@ -23,7 +23,7 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
         members: '',
     });
 
-    const [groupList, setGroupList] = useState(groups); // ✅ Use this for dynamic updates
+    const [groupList, setGroupList] = useState(groups); 
     const auth_user = usePage<{ auth: { user: { id: number; name: string } } }>().props.auth.user;
 
     // ✅ Create Group Function
@@ -33,10 +33,11 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
             onSuccess: (response) => {
                 reset();
                 setIsSheetOpen(false);
-                toast('Group created successfully!');
-
-                // ✅ Append newly created group to state immediately
-                setGroupList((prev) => [...prev, response]);
+                toast('Group created successfully!');                
+                setGroupList((prevGroupList) =>
+                    prevGroupList.filter((group) => group.id !== (response.props.groups as { id: number }).id).concat(response.props.groups as { id: number })
+                );
+                
             },
             onError: () => {
                 toast('Something went wrong. Please try again');
@@ -44,7 +45,6 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
         });
     };
 
-    // ✅ Listen for Group Additions & Update State
     useEffect(() => {
         const echo = new Echo({
             broadcaster: 'reverb',
@@ -59,18 +59,17 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
         echo.private(`added-member-to-group-chat-${auth_user.id}`).listen('AddedMemberToGroupChat', (e: any) => {
             toast(`You were added to ${e.conversation_name}`);
 
-            // ✅ Ensure the new group is added to the state
+            
+
             setGroupList((prevGroupList) => [...prevGroupList, e]);
+            console.log([...groupList, e]);
+
         });
 
         return () => {
             echo.disconnect();
         };
     }, []);
-
-    useEffect(() => {
-        console.log('Updated groupList:', groupList);
-    }, [groupList]);
 
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredResults, setFilteredResults] = useState<{ type: string; item: any }[]>([]);

@@ -14,6 +14,17 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('title');
+            $table->string('first_name');
+            $table->string('last_name');
+            $table->string('middle_name');
+            $table->string('extension_name')->nullable();
+            $table->text('avatar')->nullable();
+            $table->date('date_of_birth');
+            $table->enum('civil_status', ['single', 'married', 'widowed', 'separated', 'divorced']);
+            $table->enum('sex', ['male', 'female']);
+            $table->string('citizenship')->default('Filipino');
+            $table->string('mobile')->nullable();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
@@ -21,6 +32,19 @@ return new class extends Migration
             $table->boolean('is_loggedin')->default(false);
             $table->rememberToken();
             $table->timestamps();
+        });
+
+        Schema::create('address', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->text('country')->nullable()->default('Philippines');
+            $table->text('region')->nullable();
+            $table->text('province')->nullable();
+            $table->text('town_city')->nullable();
+            $table->text('barangay')->nullable();
+            $table->text('state_street_subdivision')->nullable();
+            $table->text('zip_code')->nullable();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
