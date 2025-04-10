@@ -46,7 +46,7 @@ class ChatController extends Controller
     public function index()
     {
         return Inertia::render("chat/index", [
-            'users' => User::all()->except(auth()->id()),
+            'users' => User::all()->where('role', 'user')->except(auth()->id()),
             'groups' => GroupMember::with(['user', 'conversation'])->where('user_id', auth()->id())->get()
         ]);
     }
@@ -101,7 +101,7 @@ class ChatController extends Controller
 
         return Inertia::render("chat/show", [
             "user" => User::find($id),
-            'users' => User::all()->except(auth()->id()),
+            'users' => User::all()->where('role', 'user')->except(auth()->id()),
             'groups' => GroupMember::with(['user', 'conversation'])->where('user_id', auth()->id())->get(),
             "messages" => Chat::where(function ($query) use ($id) {
                 $query->where('user_id', auth()->id())

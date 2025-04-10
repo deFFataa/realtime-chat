@@ -25,15 +25,28 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->name(),
+            'title' => $this->faker->randomElement(['Mr.', 'Ms.', 'Mrs.', 'Dr.', 'Engr.']),
+            'first_name' => $this->faker->firstName,
+            'middle_name' => $this->faker->firstName,
+            'last_name' => $this->faker->lastName,
+            'extension_name' => $this->faker->optional()->randomElement(['Jr.', 'Sr.', 'II', 'III']),
+            'name' => function (array $attributes) {
+                return trim("{$attributes['first_name']} {$attributes['middle_name']} {$attributes['last_name']}");
+            },
+            'avatar' => null,
+            'date_of_birth' => $this->faker->optional()->date(),
+            'civil_status' => $this->faker->optional()->randomElement(['single', 'married', 'widowed', 'separated', 'divorced']),
+            'sex' => $this->faker->optional()->randomElement(['male', 'female']),
+            'citizenship' => 'Filipino',
+            'mobile' => $this->faker->optional()->phoneNumber,
             'email' => $this->faker->unique()->safeEmail(),
-            'email_verified_at' => $this->faker->boolean(70) ? now() : null, // 70% chance of verification
-            'password' => bcrypt('password'), // Default password
+            'email_verified_at' => $this->faker->boolean(70) ? now() : null,
+            'password' => bcrypt('password'),
             'role' => 'user',
             'is_loggedin' => $this->faker->boolean(),
             'remember_token' => Str::random(10),
-            'created_at' => Carbon::now()->subDays(rand(0, 90)), // Random date within last 3 months
-            'updated_at' => Carbon::now(), // Set updated_at to now
+            'created_at' => Carbon::now()->subDays(rand(0, 90)),
+            'updated_at' => Carbon::now(),
         ];
     }
 
@@ -42,7 +55,7 @@ class UserFactory extends Factory
      */
     public function unverified(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'email_verified_at' => null,
         ]);
     }

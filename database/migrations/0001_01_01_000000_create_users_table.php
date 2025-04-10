@@ -14,21 +14,22 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('title');
+            $table->string('title')->nullable();
             $table->string('first_name');
-            $table->string('last_name');
             $table->string('middle_name');
+            $table->string('last_name');
             $table->string('extension_name')->nullable();
             $table->text('avatar')->nullable();
-            $table->date('date_of_birth');
-            $table->enum('civil_status', ['single', 'married', 'widowed', 'separated', 'divorced']);
-            $table->enum('sex', ['male', 'female']);
+            $table->date('date_of_birth')->nullable();
+            $table->enum('civil_status', ['single', 'married', 'widowed', 'separated', 'divorced'])->nullable();
+            $table->enum('sex', ['male', 'female'])->nullable();
             $table->string('citizenship')->default('Filipino');
             $table->string('mobile')->nullable();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('role', ['user','admin'])->default('user');
+            $table->enum('position', ['GB Member', 'Director'])->default('GB Member');
             $table->boolean('is_loggedin')->default(false);
             $table->rememberToken();
             $table->timestamps();
@@ -45,6 +46,7 @@ return new class extends Migration
             $table->text('barangay')->nullable();
             $table->text('state_street_subdivision')->nullable();
             $table->text('zip_code')->nullable();
+            $table->timestamps();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
@@ -69,6 +71,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('users');
+        Schema::dropIfExists('address');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
     }

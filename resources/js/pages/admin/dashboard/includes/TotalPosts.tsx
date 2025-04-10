@@ -9,20 +9,20 @@ interface Props {
 
 const TotalPosts = ({ totalPosts = 0 }: Props) => {
     return (
-        <WhenVisible
-            data="totalPosts"
-            fallback={
-                <div className="bg-background h-22 rounded-md">
-                    <div className="flex items-center justify-between space-x-4 p-4">
-                        <div className="space-y-2">
-                            <Skeleton className="h-4 w-[150px]" />
-                            <Skeleton className="h-4 w-[100px]" />
-                        </div>
-                        <Skeleton className="h-12 w-12 self-start rounded-full" />
-                    </div>
-                </div>
-            }
-        >
+        // <WhenVisible
+        //     data="totalPosts"
+        //     fallback={
+        //         <div className="bg-background h-22 rounded-md">
+        //             <div className="flex items-center justify-between space-x-4 p-4">
+        //                 <div className="space-y-2">
+        //                     <Skeleton className="h-4 w-[150px]" />
+        //                     <Skeleton className="h-4 w-[100px]" />
+        //                 </div>
+        //                 <Skeleton className="h-12 w-12 self-start rounded-full" />
+        //             </div>
+        //         </div>
+        //     }
+        // >
             <div className="bg-background grid h-full w-full rounded-md p-4 font-medium shadow">
                 <div className="relative">
                     <h2 className="text-sm">Total Posts</h2>
@@ -49,7 +49,7 @@ const TotalPosts = ({ totalPosts = 0 }: Props) => {
                 </div>
                 <span className="text-primary mt-2 text-2xl font-extrabold">{totalPosts}</span>
             </div>
-        </WhenVisible>
+        // </WhenVisible>
     );
 };
 

@@ -18,13 +18,9 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'role',
-        'is_loggedin'
-    ];
+    protected $guarded = [];
+
+    protected $appends = ['age'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -35,6 +31,11 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    public function getAgeAttribute()
+    {
+        return Carbon::parse($this->date_of_birth)->age;
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -64,8 +65,8 @@ class User extends Authenticatable
         return $this->hasMany(Comment::class);
     }
 
-    public function getAgeAttribute()
+    public function address()
     {
-        return Carbon::parse($this->date_of_birth)->age;
+        return $this->hasOne(UserAddress::class, 'user_id', 'id');
     }
 }

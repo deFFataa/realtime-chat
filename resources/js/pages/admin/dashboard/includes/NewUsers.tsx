@@ -9,90 +9,95 @@ interface Props {
 
 const NewUsers = ({ new_users = [] }: Props) => {
     return (
-        <WhenVisible
-            data="totalActiveUsers"
-            fallback={
-                <div className="bg-background h-[500px] w-full rounded-md">
-                    <div className="p-4">
-                        <Skeleton className="h-4 w-[100px]" />
-                    </div>
-                    <div className="flex items-center justify-between space-x-4 px-4 py-3.5">
-                        <div className="flex justify-center">
-                            <Skeleton className="h-12 w-12 rounded-full" />
-                            <div className="space-y-2">
-                                <Skeleton className="h-4 w-[250px]" />
-                                <Skeleton className="h-4 w-[200px]" />
-                            </div>
-                        </div>
-                        <div>
-                            <Skeleton className="h-4 w-[100px]" />
-                        </div>
-                    </div>
-                    <div className="flex items-center justify-between space-x-4 px-4 py-3.5">
-                        <div className="flex justify-center">
-                            <Skeleton className="h-12 w-12 rounded-full" />
-                            <div className="space-y-2">
-                                <Skeleton className="h-4 w-[250px]" />
-                                <Skeleton className="h-4 w-[200px]" />
-                            </div>
-                        </div>
-                        <div>
-                            <Skeleton className="h-4 w-[100px]" />
-                        </div>
-                    </div>
-                    <div className="flex items-center justify-between space-x-4 px-4 py-3.5">
-                        <div className="flex justify-center">
-                            <Skeleton className="h-12 w-12 rounded-full" />
-                            <div className="space-y-2">
-                                <Skeleton className="h-4 w-[250px]" />
-                                <Skeleton className="h-4 w-[200px]" />
-                            </div>
-                        </div>
-                        <div>
-                            <Skeleton className="h-4 w-[100px]" />
-                        </div>
-                    </div>
-                    <div className="flex items-center justify-between space-x-4 px-4 py-3.5">
-                        <div className="flex justify-center">
-                            <Skeleton className="h-12 w-12 rounded-full" />
-                            <div className="space-y-2">
-                                <Skeleton className="h-4 w-[250px]" />
-                                <Skeleton className="h-4 w-[200px]" />
-                            </div>
-                        </div>
-                        <div>
-                            <Skeleton className="h-4 w-[100px]" />
-                        </div>
-                    </div>
-                    <div className="flex items-center justify-between space-x-4 px-4 py-3.5">
-                        <div className="flex justify-center">
-                            <Skeleton className="h-12 w-12 rounded-full" />
-                            <div className="space-y-2">
-                                <Skeleton className="h-4 w-[250px]" />
-                                <Skeleton className="h-4 w-[200px]" />
-                            </div>
-                        </div>
-                        <div>
-                            <Skeleton className="h-4 w-[100px]" />
-                        </div>
-                    </div>
-                    <div className="flex items-center justify-between space-x-4 px-4 py-3.5">
-                        <div className="flex justify-center">
-                            <Skeleton className="h-12 w-12 rounded-full" />
-                            <div className="space-y-2">
-                                <Skeleton className="h-4 w-[250px]" />
-                                <Skeleton className="h-4 w-[200px]" />
-                            </div>
-                        </div>
-                        <div>
-                            <Skeleton className="h-4 w-[100px]" />
-                        </div>
-                    </div>
-                </div>
-            }
-        >
-            <div className="bg-background max-h-[500px] overflow-auto rounded-md shadow">
+        // <WhenVisible
+        //     data="totalActiveUsers"
+        //     fallback={
+        //         <div className="bg-background h-[500px] w-full rounded-md">
+        //             <div className="p-4">
+        //                 <Skeleton className="h-4 w-[100px]" />
+        //             </div>
+        //             <div className="flex items-center justify-between space-x-4 px-4 py-3.5">
+        //                 <div className="flex justify-center">
+        //                     <Skeleton className="h-12 w-12 rounded-full" />
+        //                     <div className="space-y-2">
+        //                         <Skeleton className="h-4 w-[250px]" />
+        //                         <Skeleton className="h-4 w-[200px]" />
+        //                     </div>
+        //                 </div>
+        //                 <div>
+        //                     <Skeleton className="h-4 w-[100px]" />
+        //                 </div>
+        //             </div>
+        //             <div className="flex items-center justify-between space-x-4 px-4 py-3.5">
+        //                 <div className="flex justify-center">
+        //                     <Skeleton className="h-12 w-12 rounded-full" />
+        //                     <div className="space-y-2">
+        //                         <Skeleton className="h-4 w-[250px]" />
+        //                         <Skeleton className="h-4 w-[200px]" />
+        //                     </div>
+        //                 </div>
+        //                 <div>
+        //                     <Skeleton className="h-4 w-[100px]" />
+        //                 </div>
+        //             </div>
+        //             <div className="flex items-center justify-between space-x-4 px-4 py-3.5">
+        //                 <div className="flex justify-center">
+        //                     <Skeleton className="h-12 w-12 rounded-full" />
+        //                     <div className="space-y-2">
+        //                         <Skeleton className="h-4 w-[250px]" />
+        //                         <Skeleton className="h-4 w-[200px]" />
+        //                     </div>
+        //                 </div>
+        //                 <div>
+        //                     <Skeleton className="h-4 w-[100px]" />
+        //                 </div>
+        //             </div>
+        //             <div className="flex items-center justify-between space-x-4 px-4 py-3.5">
+        //                 <div className="flex justify-center">
+        //                     <Skeleton className="h-12 w-12 rounded-full" />
+        //                     <div className="space-y-2">
+        //                         <Skeleton className="h-4 w-[250px]" />
+        //                         <Skeleton className="h-4 w-[200px]" />
+        //                     </div>
+        //                 </div>
+        //                 <div>
+        //                     <Skeleton className="h-4 w-[100px]" />
+        //                 </div>
+        //             </div>
+        //             <div className="flex items-center justify-between space-x-4 px-4 py-3.5">
+        //                 <div className="flex justify-center">
+        //                     <Skeleton className="h-12 w-12 rounded-full" />
+        //                     <div className="space-y-2">
+        //                         <Skeleton className="h-4 w-[250px]" />
+        //                         <Skeleton className="h-4 w-[200px]" />
+        //                     </div>
+        //                 </div>
+        //                 <div>
+        //                     <Skeleton className="h-4 w-[100px]" />
+        //                 </div>
+        //             </div>
+        //             <div className="flex items-center justify-between space-x-4 px-4 py-3.5">
+        //                 <div className="flex justify-center">
+        //                     <Skeleton className="h-12 w-12 rounded-full" />
+        //                     <div className="space-y-2">
+        //                         <Skeleton className="h-4 w-[250px]" />
+        //                         <Skeleton className="h-4 w-[200px]" />
+        //                     </div>
+        //                 </div>
+        //                 <div>
+        //                     <Skeleton className="h-4 w-[100px]" />
+        //                 </div>
+        //             </div>
+        //         </div>
+        //     }
+        // >
+            <div className="bg-background h-full overflow-auto rounded-md shadow">
                 <h2 className="bg-background sticky top-0 z-1 p-4 font-semibold">New Users</h2>
+                {new_users.length === 0 && (
+                    <div className="flex items-center h-full justify-center p-4 text-sm text-muted-foreground">
+                        New Users will displayed here in realtime.
+                    </div>
+                )}
                 {new_users.map((user: any) => (
                     <div key={user.id} className="flex justify-between px-4 pb-4">
                         <div className="flex items-center gap-2">
@@ -109,7 +114,7 @@ const NewUsers = ({ new_users = [] }: Props) => {
                     </div>
                 ))}
             </div>
-        </WhenVisible>
+        // </WhenVisible>
     );
 };
 
