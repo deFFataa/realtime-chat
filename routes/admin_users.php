@@ -9,6 +9,7 @@ Route::middleware('auth')->group(function () {
     Route::get('admin/users', [AdminUserController::class,'index'])->name('admin.users.index');
     Route::get('admin/users/create', [AdminUserController::class,'create'])->name('admin.users.create');
     Route::post('admin/users', [AdminUserController::class,'store'])->name('admin.users.store');
+    Route::post('admin/users/{user}/reset-password', [AdminUserController::class,'reset_password'])->name('admin.users.reset-password');
     Route::get('admin/users/{user}/edit', [AdminUserController::class,'edit'])->name('admin.users.edit');
     Route::post('admin/save-personal-information/{user}', [AdminUserController::class,'update_personal_information'])->name('admin.users.update-personal-information');
     Route::post('admin/save-account-information/{user}', [AdminUserController::class,'update_account_information'])->name('admin.users.update-account-information');
@@ -17,5 +18,8 @@ Route::middleware('auth')->group(function () {
 
     //Admin Users
     Route::get('admin/admin-users', [AdminUserAdminsController::class,'index'])->name('admin.users.admin.index');
+    Route::get('admin/users/admin/{user}/edit', [AdminUserAdminsController::class,'edit'])->name('admin.admin-users.edit');
+    Route::post('admin/save-admin-personal-information/{user}', [AdminUserAdminsController::class,'update_personal_information'])->name('admin.users.update-admin-personal-information');
+    Route::post('save-address-information/{user}', [AdminUserAdminsController::class,'update_address_information'])->name('admin.users.update-admin-address-information');
 
 });

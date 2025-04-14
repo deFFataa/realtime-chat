@@ -11,7 +11,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const index = () => {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <div className="p-6">Hekki</div>
+            <div className="p-6">All Discussion board will be posted here</div>
         </AppLayout>
     );
 };

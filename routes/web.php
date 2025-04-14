@@ -15,7 +15,7 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
 
-        if (Auth::user()->role == 'admin') {
+        if (Auth::user()->role !== 'user') {
             abort(403);
         }
 
@@ -24,7 +24,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('admin/dashboard', function () {
 
-        if (Auth::user()->role == 'user') {
+        if (Auth::user()->role === 'user') {
             abort(403);
         }
         return Inertia::render('admin/dashboard/index', [
@@ -48,3 +48,4 @@ require __DIR__ . '/auth.php';
 require __DIR__ . '/conversation.php';
 require __DIR__ . '/chat.php';
 require __DIR__ . '/admin_users.php';
+require __DIR__ . '/scheduler.php';

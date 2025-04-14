@@ -172,5 +172,12 @@ class AdminUserController extends Controller
         return redirect()->back();
     }
 
+    public function reset_password(Request $request, User $user){
+        $user->password = Hash::make('ECollab_2025');
+
+        $user->save();
+
+        return redirect()->back();
+    }
 
 }

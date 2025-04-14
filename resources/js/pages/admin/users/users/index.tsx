@@ -46,6 +46,10 @@ interface Users {
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Manage Users',
+        href: '',
+    },
+    {
+        title: 'Users',
         href: '/admin/users',
     },
 ];
@@ -155,35 +159,36 @@ const index = ({ users = [] }: Props) => {
                     </TooltipProvider>
                     <TooltipProvider>
                         <Tooltip>
-                            <TooltipTrigger className="hover:bg-muted-foreground/30 rounded-full">
-                                <Dialog>
+                            <Dialog>
+                                <TooltipTrigger className="hover:bg-muted-foreground/30 rounded-full">
                                     <DialogTrigger asChild type="button">
                                         <Trash className="p-[5px]" />
                                     </DialogTrigger>
-                                    <DialogContent>
-                                        <DialogHeader>
-                                            <DialogTitle>Are you sure you want to delete this account?</DialogTitle>
-                                            <DialogDescription>
-                                                This action cannot be undone. Are you sure you want to permanently delete this account?
-                                            </DialogDescription>
-                                        </DialogHeader>
-                                        <DialogFooter>
-                                            <form onSubmit={() => handleDelete(row.getValue('id'))}>
-                                                <Button variant={'destructive'} disabled={processing}>
-                                                    {processing ? (
-                                                        <div className="flex items-center gap-1">
-                                                            <LoaderCircle className="h-4 w-4 animate-spin" />
-                                                            Deleting...
-                                                        </div>
-                                                    ) : (
-                                                        'Confirm'
-                                                    )}
-                                                </Button>
-                                            </form>
-                                        </DialogFooter>
-                                    </DialogContent>
-                                </Dialog>
-                            </TooltipTrigger>
+                                </TooltipTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Are you sure you want to delete this account?</DialogTitle>
+                                        <DialogDescription>
+                                            This action cannot be undone. Are you sure you want to permanently delete this account?
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <DialogFooter>
+                                        <form onSubmit={() => handleDelete(row.getValue('id'))}>
+                                            <Button variant={'destructive'} disabled={processing}>
+                                                {processing ? (
+                                                    <div className="flex items-center gap-1">
+                                                        <LoaderCircle className="h-4 w-4 animate-spin" />
+                                                        Deleting...
+                                                    </div>
+                                                ) : (
+                                                    'Confirm'
+                                                )}
+                                            </Button>
+                                        </form>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+
                             <TooltipContent>
                                 <p>Delete</p>
                             </TooltipContent>

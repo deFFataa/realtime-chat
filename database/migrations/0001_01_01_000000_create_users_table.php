@@ -28,8 +28,8 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('role', ['user','admin'])->default('user');
-            $table->enum('position', ['GB Member', 'Director'])->default('GB Member');
+            $table->enum('role', ['user','admin', 'super-admin'])->default('user');
+            $table->enum('position', ['President', 'Vice President', 'Corporate Secretary', 'Treasurer', 'Assisstant Corporate Secretary', 'Assisstant Treasurer', 'Member', 'Member-At-Large', 'DOST Representative'])->nullable()->default('Member');
             $table->boolean('is_loggedin')->default(false);
             $table->rememberToken();
             $table->timestamps();

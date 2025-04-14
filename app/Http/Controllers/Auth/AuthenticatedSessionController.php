@@ -38,7 +38,7 @@ class AuthenticatedSessionController extends Controller
         Auth::user()->update(['is_loggedin' => true]);
         broadcast(new TotalActiveUsers());
 
-        if (Auth::user()->role == 'admin') {
+        if (Auth::user()->role !== 'user') {
             return redirect()->intended(route('admin.dashboard', absolute: false));
         }
 

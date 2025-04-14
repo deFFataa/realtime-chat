@@ -1,6 +1,6 @@
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { Calendar } from '@/components/ui/custom-calendar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 
 const PersonalInformation = ({ user }: Props) => {
     const { data, setData, post, processing, errors, reset } = useForm({
+        position: user.position,
         title: user.title,
         first_name: user.first_name,
         middle_name: user.middle_name,
@@ -53,9 +54,31 @@ const PersonalInformation = ({ user }: Props) => {
             <form className="grid grid-cols-3" onSubmit={savePersonalInformation}>
                 <div>
                     <h1 className="font-semibold">Personal Information</h1>
-                    <p className="text-muted-foreground text-sm">Edit your personal information</p>
+                    <p className="text-muted-foreground text-sm">Edit personal information</p>
                 </div>
                 <div className="col-span-2 grid grid-cols-2 gap-2">
+                    <div>
+                        <Label htmlFor="position">Position</Label>
+                        <Select value={data.position ?? ''} onValueChange={(value) => setData('position', value)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Choose" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup>
+                                    <SelectItem value="President">President</SelectItem>
+                                    <SelectItem value="Vice President">Vice President</SelectItem>
+                                    <SelectItem value="Corporate Secretary">Corporate Secretary</SelectItem>
+                                    <SelectItem value="Treasurer">Treasurer</SelectItem>
+                                    <SelectItem value="Assisstant Corporate Secretary">Assisstant Corporate Secretary</SelectItem>
+                                    <SelectItem value="Assisstant Treasurer">Assisstant Treasurer</SelectItem>
+                                    <SelectItem value="Member">Member</SelectItem>
+                                    <SelectItem value="Member-At-Large">Member-At-Large</SelectItem>
+                                    <SelectItem value="DOST Representative">DOST Representative</SelectItem>
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+                        <InputError message={errors.position} className="mt-1 text-sm" />
+                    </div>
                     <div>
                         <Label htmlFor="Title">Title</Label>
                         <Input
@@ -204,7 +227,7 @@ const PersonalInformation = ({ user }: Props) => {
                         <Label htmlFor="civil_status">Civil Status</Label>
                         <Select value={data.civil_status ?? ''} onValueChange={(value) => setData('civil_status', value)}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select your Civil Status" />
+                                <SelectValue placeholder="Choose" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectGroup>
@@ -222,7 +245,7 @@ const PersonalInformation = ({ user }: Props) => {
                         <Label htmlFor="sex">Sex</Label>
                         <Select value={data.sex ?? ''} onValueChange={(value) => setData('sex', value)}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select your sex" />
+                                <SelectValue placeholder="Choose" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectGroup>

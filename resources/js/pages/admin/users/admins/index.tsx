@@ -2,31 +2,28 @@ import AppLayout from '@/layouts/app-layout';
 import {
     ColumnDef,
     ColumnFiltersState,
-    SortingState,
-    VisibilityState,
     flexRender,
     getCoreRowModel,
     getFilteredRowModel,
-    getPaginationRowModel,
     getSortedRowModel,
+    SortingState,
     useReactTable,
+    VisibilityState,
 } from '@tanstack/react-table';
 import { ArrowUpDown, ChevronDown, Pencil, Trash } from 'lucide-react';
 import { useState } from 'react';
 
+import ManageUserHeader from '@/components/ManageUserHeader';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { BreadcrumbItem } from '@/types';
 import { Head, Link, usePage, WhenVisible } from '@inertiajs/react';
-import { Skeleton } from '@/components/ui/skeleton';
-import ManageUserHeader from '@/components/ManageUserHeader';
 
 interface Props {
     admin_users: Array<{
@@ -47,7 +44,11 @@ interface Users {
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Manage Users',
-        href: '/admin/users',
+        href: '#',
+    },
+    {
+        title: 'Admins',
+        href: '/admin/admin-users',
     },
 ];
 
@@ -121,14 +122,14 @@ const index = ({ admin_users = [] }: Props) => {
             ),
         },
         {
-            accessorKey: 'action',
+            accessorKey: 'id',
             header: 'Action',
             cell: ({ row }) => (
                 <div className="flex">
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger className="hover:bg-muted-foreground/30 rounded-full">
-                                <Link href="#">
+                                <Link href={route('admin.admin-users.edit', row.getValue('id'))}>
                                     <Pencil className="p-[5px]" />
                                 </Link>
                             </TooltipTrigger>
@@ -165,7 +166,6 @@ const index = ({ admin_users = [] }: Props) => {
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         onColumnVisibilityChange: setColumnVisibility,
@@ -178,32 +178,12 @@ const index = ({ admin_users = [] }: Props) => {
         },
     });
 
-    const currentPage = table.getState().pagination.pageIndex + 1;
-    const totalPages = table.getPageCount();
-    const maxVisiblePages = 3;
-
-    const getPageNumbers = () => {
-        let pages: (number | string)[] = [];
-        let startPage = Math.max(1, currentPage - 1);
-        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-        if (endPage < totalPages) {
-            pages = [...Array(endPage - startPage + 1).keys()].map((i) => startPage + i);
-            if (endPage < totalPages - 1) {
-                pages.push('...');
-            }
-            pages.push(totalPages);
-        } else {
-            pages = [...Array(totalPages - startPage + 1).keys()].map((i) => startPage + i);
-        }
-        return pages;
-    };
-
     const columnDisplayNames = {
         email: 'Email',
         name: 'Name',
-        mobile: 'Mobile',
+        position: 'Position',
         is_loggedin: 'Status',
+        id: 'Action',
     };
 
     const url = usePage().url;
@@ -233,124 +213,83 @@ const index = ({ admin_users = [] }: Props) => {
             >
                 <div className="w-full p-4">
                     <ManageUserHeader url={url} />
-                    <div className="flex items-center py-4">
-                        <Input
-                            placeholder="Search by email, name, or mobile..."
-                            value={table.getState().globalFilter ?? ''}
-                            onChange={(event) => table.setGlobalFilter(event.target.value)}
-                            className="max-w-sm"
-                        />
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" className="ml-auto">
-                                    Columns <ChevronDown />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                {table
-                                    .getAllColumns()
-                                    .filter((column) => column.getCanHide())
-                                    .map((column) => {
-                                        return (
-                                            <DropdownMenuCheckboxItem
-                                                key={column.id}
-                                                className="capitalize"
-                                                checked={column.getIsVisible()}
-                                                onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                                            >
-                                                {columnDisplayNames[column.id as keyof typeof columnDisplayNames] || column.id}
-                                            </DropdownMenuCheckboxItem>
-                                        );
-                                    })}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                    <div className="rounded-md border">
-                        <Table>
-                            <TableHeader>
-                                {table.getHeaderGroups().map((headerGroup) => (
-                                    <TableRow key={headerGroup.id}>
-                                        {headerGroup.headers.map((header) => {
-                                            return (
-                                                <TableHead key={header.id}>
-                                                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                                                </TableHead>
-                                            );
-                                        })}
-                                    </TableRow>
-                                ))}
-                            </TableHeader>
-                            <TableBody>
-                                {table.getRowModel().rows?.length ? (
-                                    table.getRowModel().rows.map((row) => (
-                                        <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                                            {row.getVisibleCells().map((cell) => (
-                                                <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                                            ))}
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={columns.length} className="h-24 text-center">
-                                            No results.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
-                    <div className="flex items-center justify-between py-4">
-                        <div className="flex items-center gap-2">
-                            <Label htmlFor="rows-per-page" className="text-sm font-medium">
-                                Show
-                            </Label>
-                            <Select
-                                value={`${table.getState().pagination.pageSize}`}
-                                onValueChange={(value) => {
-                                    table.setPageSize(Number(value));
-                                }}
-                            >
-                                <SelectTrigger className="w-20" id="rows-per-page">
-                                    <SelectValue placeholder={table.getState().pagination.pageSize} />
-                                </SelectTrigger>
-                                <SelectContent side="top">
-                                    {[10, 20, 50, 100].map((pageSize) => (
-                                        <SelectItem key={pageSize} value={`${pageSize}`}>
-                                            {pageSize}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            Entries
-                        </div>
-                        <div className="space-x-1">
-                            <Button variant="outline" size="sm" onClick={() => table.firstPage()} disabled={!table.getCanPreviousPage()}>
-                                {'<<'}
-                            </Button>
-                            <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-                                Previous
-                            </Button>
-
-                            {getPageNumbers().map((page, index) => (
-                                <Button
-                                    key={index}
-                                    variant={page === currentPage ? 'default' : 'outline'}
-                                    size="sm"
-                                    onClick={() => typeof page === 'number' && table.setPageIndex(page - 1)}
-                                    disabled={page === '...'}
-                                >
-                                    {page}
-                                </Button>
-                            ))}
-
-                            <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-                                Next
-                            </Button>
-                            <Button variant="outline" size="sm" onClick={() => table.lastPage()} disabled={!table.getCanNextPage()}>
-                                {'>>'}
-                            </Button>
-                        </div>
-                    </div>
+                    {userList.length === 0 && (
+                        <div className="text-muted-foreground flex h-100 items-center justify-center text-lg font-medium">No Admins Found.</div>
+                    )}
+                    {userList.length > 0 && (
+                        <>
+                            <div className="flex items-center py-4">
+                                <Input
+                                    placeholder="Search by email, name, or mobile..."
+                                    value={table.getState().globalFilter ?? ''}
+                                    onChange={(event) => table.setGlobalFilter(event.target.value)}
+                                    className="max-w-sm"
+                                />
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" className="ml-auto">
+                                            Columns <ChevronDown />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        {table
+                                            .getAllColumns()
+                                            .filter((column) => column.getCanHide())
+                                            .map((column) => {
+                                                return (
+                                                    <DropdownMenuCheckboxItem
+                                                        key={column.id}
+                                                        className="capitalize"
+                                                        checked={column.getIsVisible()}
+                                                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                                                    >
+                                                        {columnDisplayNames[column.id as keyof typeof columnDisplayNames] || column.id}
+                                                    </DropdownMenuCheckboxItem>
+                                                );
+                                            })}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                            <div className="rounded-md border">
+                                <Table>
+                                    <TableHeader>
+                                        {table.getHeaderGroups().map((headerGroup) => (
+                                            <TableRow key={headerGroup.id}>
+                                                {headerGroup.headers.map((header) => {
+                                                    return (
+                                                        <TableHead key={header.id}>
+                                                            {header.isPlaceholder
+                                                                ? null
+                                                                : flexRender(header.column.columnDef.header, header.getContext())}
+                                                        </TableHead>
+                                                    );
+                                                })}
+                                            </TableRow>
+                                        ))}
+                                    </TableHeader>
+                                    <TableBody>
+                                        {table.getRowModel().rows?.length ? (
+                                            table.getRowModel().rows.map((row) => (
+                                                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                                                    {row.getVisibleCells().map((cell) => (
+                                                        <TableCell key={cell.id}>
+                                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                        </TableCell>
+                                                    ))}
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={columns.length} className="h-24 text-center">
+                                                    No results.
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </>
+                    )}
                 </div>
             </WhenVisible>
         </AppLayout>

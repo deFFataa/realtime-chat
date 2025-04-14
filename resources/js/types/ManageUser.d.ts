@@ -3,6 +3,7 @@ import { ReactNode } from "react";
 export interface Props {
     user: {
         id: number;
+        position: string;
         title: string;
         first_name: string;
         middle_name: string;
