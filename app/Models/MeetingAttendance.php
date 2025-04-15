@@ -12,12 +12,15 @@ class MeetingAttendance extends Model
 
     protected $guarded = [];
 
-    public function user(){
-        $this->hasMany(User::class);
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
-    public function scheduler(){
-        $this->belongsTo(Scheduler::class);
+
+    public function scheduler()
+    {
+        return $this->belongsTo(Scheduler::class);
     }
 
 }

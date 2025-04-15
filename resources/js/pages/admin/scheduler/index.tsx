@@ -5,6 +5,7 @@ import {
     flexRender,
     getCoreRowModel,
     getFilteredRowModel,
+    getPaginationRowModel,
     getSortedRowModel,
     SortingState,
     useReactTable,
@@ -13,15 +14,18 @@ import {
 import { ArrowUpDown, CalendarPlus, ChevronDown, LoaderCircle, Pencil, Trash } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { BreadcrumbItem } from '@/types';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -34,6 +38,22 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface Props {
     meeting_schedule: Array<Schedules>;
+    attendance: {
+        item: {
+            [meeting_id: number]: Attendance[];
+        };
+    };
+    users_count: number;
+}
+
+interface Attendance {
+    id: number;
+    meeting_id: number;
+    user_id: number;
+    user: {
+        id: number;
+        name: string;
+    };
 }
 
 interface Schedules {
@@ -44,9 +64,11 @@ interface Schedules {
     end_time: string;
 }
 
-const index = ({ meeting_schedule = [] }: Props) => {
+const index = ({ meeting_schedule = [], attendance, users_count }: Props) => {
+    const [attendance_list, setAttendance] = useState(attendance);
     const [schedules, setSchedules] = useState(meeting_schedule);
     const data = schedules;
+    console.log(attendance_list.item);
 
     useEffect(() => {
         setSchedules(meeting_schedule);
@@ -54,12 +76,12 @@ const index = ({ meeting_schedule = [] }: Props) => {
 
     const { delete: destroy, processing } = useForm();
 
-    const handleDelete = (id: number, e?: React.FormEvent<HTMLFormElement>) => {
-        e?.preventDefault();
-        destroy(route('admin.users.destroy', id), {
+    const handleDelete = (id: number, e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        destroy(route('admin.schedules.destroy', id), {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('You have successfully deleted the user.');
+                toast.success('Meeting is deleted.');
             },
         });
     };
@@ -118,14 +140,54 @@ const index = ({ meeting_schedule = [] }: Props) => {
             accessorKey: 'end_time',
             header: () => <div>Time</div>,
             cell: ({ row }) => {
-                const startTime = new Date(`1970-01-01T${row.original.start_time}Z`) // Convert to a valid Date object
-                const endTime = new Date(`1970-01-01T${row.original.end_time}Z`)
-        
+                const startTime = new Date(`1970-01-01T${row.original.start_time}Z`);
+                const endTime = new Date(`1970-01-01T${row.original.end_time}Z`);
+
                 return (
                     <div>
                         {format(startTime, 'h:mm a')} - {format(endTime, 'h:mm a')}
                     </div>
-                )
+                );
+            },
+        },
+        {
+            accessorKey: '',
+            header: 'Attendance',
+            cell: ({ row }) => {
+                const meetingId = row.original.id;
+                const attendances = attendance_list.item[meetingId] || [];
+
+                return (
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button size="sm" variant="outline" className="flex w-full justify-start">
+                                <span className="ml-2">
+                                    {attendances.length}/{users_count}
+                                </span>
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                            <form>
+                                <DialogHeader>
+                                    <DialogTitle>Attendance</DialogTitle>
+                                </DialogHeader>
+                                <div className="grid gap-4 py-4">
+                                    <div className="bg-muted/20 grid max-h-[300px] items-center overflow-y-auto rounded-md">
+                                        {attendances.length === 0 && <p className="p-2 text-center">No One Responded Yet.</p>}
+                                        {attendances.map((a) => (
+                                            <div key={a.id} className="flex items-center gap-2 border-b p-2">
+                                                <Avatar>
+                                                    <AvatarFallback>{a.user.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <span>{a.user.name}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+                );
             },
         },
         {
@@ -136,7 +198,7 @@ const index = ({ meeting_schedule = [] }: Props) => {
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger className="hover:bg-muted-foreground/30 rounded-full">
-                                <Link href={route('admin.users.edit', row.getValue('id'))}>
+                                <Link href={route('admin.schedules.edit', row.getValue('id'))}>
                                     <Pencil className="p-[5px]" />
                                 </Link>
                             </TooltipTrigger>
@@ -155,13 +217,13 @@ const index = ({ meeting_schedule = [] }: Props) => {
                                 </TooltipTrigger>
                                 <DialogContent>
                                     <DialogHeader>
-                                        <DialogTitle>Are you sure you want to delete this account?</DialogTitle>
+                                        <DialogTitle>Are you sure you want to delete this meeting?</DialogTitle>
                                         <DialogDescription>
-                                            This action cannot be undone. Are you sure you want to permanently delete this account?
+                                            This action cannot be undone. Are you sure you want to permanently delete this meeting?
                                         </DialogDescription>
                                     </DialogHeader>
                                     <DialogFooter>
-                                        <form onSubmit={() => handleDelete(row.getValue('id'))}>
+                                        <form onSubmit={(e) => handleDelete(row.getValue('id'), e)}>
                                             <Button variant={'destructive'} disabled={processing}>
                                                 {processing ? (
                                                     <div className="flex items-center gap-1">
@@ -198,6 +260,7 @@ const index = ({ meeting_schedule = [] }: Props) => {
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         onColumnVisibilityChange: setColumnVisibility,
@@ -218,7 +281,42 @@ const index = ({ meeting_schedule = [] }: Props) => {
         id: 'Action',
     };
 
-    const url = usePage().url;
+    const currentPage = table.getState().pagination.pageIndex + 1;
+    const totalPages = table.getPageCount();
+
+    const getPageNumbers = () => {
+        const pages: (number | string)[] = [];
+
+        const firstPages = 3;
+        const lastPages = 3;
+
+        const slidingStart = Math.max(1, currentPage - 1);
+        const slidingEnd = Math.min(totalPages, currentPage + 1);
+
+        // If currentPage is within the first few pages
+        if (currentPage <= firstPages) {
+            for (let i = 1; i <= firstPages; i++) pages.push(i);
+            if (totalPages > firstPages + lastPages) pages.push('...');
+        } else {
+            // Add sliding window
+            for (let i = slidingStart; i <= slidingEnd; i++) {
+                pages.push(i);
+            }
+
+            if (slidingEnd < totalPages - lastPages) {
+                pages.push('...');
+            }
+        }
+
+        // Always show last few pages
+        for (let i = totalPages - lastPages + 1; i <= totalPages; i++) {
+            if (!pages.includes(i) && i > 0) {
+                pages.push(i);
+            }
+        }
+
+        return pages;
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -239,7 +337,7 @@ const index = ({ meeting_schedule = [] }: Props) => {
                     <>
                         <div className="flex items-center py-4">
                             <Input
-                                placeholder="Search by title..."
+                                placeholder="Search by agenda..."
                                 value={table.getState().globalFilter ?? ''}
                                 onChange={(event) => table.setGlobalFilter(event.target.value)}
                                 className="max-w-sm"
@@ -304,6 +402,87 @@ const index = ({ meeting_schedule = [] }: Props) => {
                                     )}
                                 </TableBody>
                             </Table>
+                            <div className="flex items-center justify-between p-4">
+                                <div className="flex items-center gap-2">
+                                    <Label htmlFor="rows-per-page" className="text-sm font-medium">
+                                        Show
+                                    </Label>
+                                    <Select
+                                        value={`${table.getState().pagination.pageSize}`}
+                                        onValueChange={(value) => {
+                                            table.setPageSize(Number(value));
+                                        }}
+                                    >
+                                        <SelectTrigger className="w-20" id="rows-per-page">
+                                            <SelectValue placeholder={table.getState().pagination.pageSize} />
+                                        </SelectTrigger>
+                                        <SelectContent side="top">
+                                            {[10, 20, 50, 100].map((pageSize) => (
+                                                <SelectItem key={pageSize} value={`${pageSize}`}>
+                                                    {pageSize}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    Entries
+                                </div>
+                                <div className="space-x-1">
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => table.firstPage()}
+                                                    disabled={!table.getCanPreviousPage()}
+                                                >
+                                                    {'<<'}
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Go back to first page.</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+
+                                    <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+                                        Previous
+                                    </Button>
+
+                                    {getPageNumbers().map((page, index) => (
+                                        <Button
+                                            key={index}
+                                            variant={page === currentPage ? 'default' : 'outline'}
+                                            size="sm"
+                                            onClick={() => typeof page === 'number' && table.setPageIndex(page - 1)}
+                                            disabled={page === '...'}
+                                        >
+                                            {page}
+                                        </Button>
+                                    ))}
+
+                                    <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+                                        Next
+                                    </Button>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => table.lastPage()}
+                                                    disabled={!table.getCanNextPage()}
+                                                >
+                                                    {'>>'}
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Go to the last page.</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
+                            </div>
                         </div>
                     </>
                 )}

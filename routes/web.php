@@ -3,6 +3,7 @@
 use App\Events\TotalPosts;
 use App\Events\TotalUsers;
 use App\Models\Post;
+use App\Models\Scheduler;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -35,6 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->where('is_loggedin', true)
                 ->count(),
             'all_users' => User::where('role', 'user')->get(['name', 'created_at']),
+            'schedule' => Scheduler::all(),
             broadcast(new TotalUsers()),
             broadcast(new TotalPosts())
         ]);

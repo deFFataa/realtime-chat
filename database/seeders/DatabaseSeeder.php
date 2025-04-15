@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\MeetingAttendance;
 use App\Models\Scheduler;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -35,11 +36,23 @@ class DatabaseSeeder extends Seeder
         ])->each(function ($user) {
             UserAddress::factory()->create(['user_id' => $user->id]);
         });
-        User::factory(15)->create()->each(function ($user) {
+        User::factory(5)->create()->each(function ($user) {
             UserAddress::factory()->create(['user_id' => $user->id]);
         });
 
         Scheduler::factory(5)->create();
-
+        $schedulers = Scheduler::all();
+        $users = User::all();
+        
+        foreach ($schedulers as $scheduler) {
+            // Pick 3–5 random users per meeting
+            $schedulerUsers = $users->random(rand(3, 5));
+            foreach ($schedulerUsers as $user) {
+                MeetingAttendance::factory()->create([
+                    'meeting_id' => $scheduler->id,
+                    'user_id' => $user->id,
+                ]);
+            }
+        }
     }
 }

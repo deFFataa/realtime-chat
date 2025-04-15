@@ -23,9 +23,17 @@ interface Props {
     new_users: Array<{ id: number; name: string; email: string; created_at: string }>;
     active_users: number;
     all_users: any[];
+    schedule: Array<{
+        id: number;
+        title: string;
+        description: string;
+        date_of_meeting: string;
+        start_time: string;
+        end_time: string;
+    }>;
 }
 
-export default function Dashboard({ users_count, post_count, new_users, active_users, all_users }: Props) {
+export default function Dashboard({ users_count, post_count, new_users, active_users, all_users, schedule }: Props) {
     const [totalUsers, setTotalUsers] = useState(users_count || 0);
     const [totalPosts, setTotalPosts] = useState(post_count || 0);
     const [totalActiveUsers, setTotalActiveUsers] = useState(active_users || 0);
@@ -65,7 +73,7 @@ export default function Dashboard({ users_count, post_count, new_users, active_u
                     <UpcomingEvent />
                 </div>
                 <div className="grid min-h-0 flex-1 grid-cols-2 gap-4 max-lg:grid-cols-1">
-                    <ScheduleAndReminders />
+                    <ScheduleAndReminders schedule={schedule}/>
                     <FeedbackSummaryReport/>
                 </div>
             </div>

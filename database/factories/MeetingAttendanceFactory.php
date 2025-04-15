@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
+use App\Models\Scheduler;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +19,8 @@ class MeetingAttendanceFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'meeting_id' => Scheduler::inRandomOrder()->first()?->id ?? Scheduler::factory(),
+            'user_id' => User::inRandomOrder()->first()?->id ?? User::factory(),
         ];
     }
 }

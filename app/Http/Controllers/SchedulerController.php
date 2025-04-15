@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Inertia\Inertia;
 use App\Models\Scheduler;
 use Illuminate\Http\Request;
+use App\Models\MeetingAttendance;
 use App\Http\Requests\StoreSchedulerRequest;
 use App\Http\Requests\UpdateSchedulerRequest;
 
@@ -15,8 +17,14 @@ class SchedulerController extends Controller
      */
     public function index()
     {
+        $attendance = MeetingAttendance::with('user')->get()->groupBy('meeting_id');
+
+        // dd($attendance);
+
         return Inertia::render('admin/scheduler/index', [
-            'meeting_schedule' => Scheduler::latest()->get()
+            'meeting_schedule' => Scheduler::latest()->get(),
+            'attendance' => ['item' => $attendance],
+            'users_count' => User::where('role', 'user')->count()
         ]);
     }
 
@@ -41,6 +49,8 @@ class SchedulerController extends Controller
             'end_time' => ['required'],
         ]);
 
+        // dd($validated);
+
         try {
             Scheduler::create($validated);
         } catch (\Throwable $th) {
@@ -64,15 +74,33 @@ class SchedulerController extends Controller
      */
     public function edit(Scheduler $scheduler)
     {
-        //
+        return Inertia::render('admin/scheduler/edit', [
+            'scheduler' => $scheduler
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateSchedulerRequest $request, Scheduler $scheduler)
+    public function update(Request $request, Scheduler $scheduler)
     {
-        //
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'min:1'],
+            'description' => ['required', 'string', 'min:1'],
+            'date_of_meeting' => ['required', 'date'],
+            'start_time' => ['required'],
+            'end_time' => ['required'],
+        ]);
+
+        // dd($validated);
+
+        try {
+            $scheduler->update($validated);
+        } catch (\Throwable $th) {
+            return back()->with('error', $th->getMessage());
+        }
+
+        return redirect()->back();
     }
 
     /**
@@ -80,6 +108,12 @@ class SchedulerController extends Controller
      */
     public function destroy(Scheduler $scheduler)
     {
-        //
+        try {
+            $scheduler->delete();
+        } catch (\Throwable $th) {
+            return back()->with('error', $th->getMessage());
+        }
+
+        return redirect()->back();
     }
 }

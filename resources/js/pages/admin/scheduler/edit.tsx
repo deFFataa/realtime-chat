@@ -19,12 +19,23 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/admin/meeting-scheduler',
     },
     {
-        title: 'Schedule a Meeting',
-        href: '/admin/meeting-scheduler',
+        title: 'Edit Scheduled Meeting',
+        href: '',
     },
 ];
 
-const create = () => {
+interface Props {
+    scheduler: {
+        id: number;
+        title: string;
+        description: string;
+        date_of_meeting: string;
+        start_time: string;
+        end_time: string;
+    };
+}
+
+const edit = ({ scheduler }: Props) => {
     const inputStartTimeRef = useRef<HTMLInputElement>(null);
     const inputEndTimeRef = useRef<HTMLInputElement>(null);
     const handleStartTimeIconClick = () => {
@@ -36,11 +47,11 @@ const create = () => {
     };
 
     const { data, setData, post, processing, errors, reset } = useForm({
-        title: '',
-        description: '',
-        date_of_meeting: '',
-        start_time: '',
-        end_time: '',
+        title: scheduler.title,
+        description: scheduler.description,
+        date_of_meeting: scheduler.date_of_meeting,
+        start_time: scheduler.start_time,
+        end_time: scheduler.end_time,
     });
 
     const [date, setDate] = useState<Date | null>(data.date_of_meeting ? new Date(data.date_of_meeting) : null);
@@ -53,22 +64,24 @@ const create = () => {
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        post(route('admin.schedules.store'), {
+        post(route('admin.schedules.update', scheduler.id), {
             preserveScroll: true,
             onSuccess: () => {
-                reset();
-                toast.success('A meeting was scheduled and email was sent to all participants.');
+                toast.success('Saved Successfully!');
             },
         });
     };
+    
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Schedule a Meeting" />
+            <Head title="Edit Scheduled Meeting" />
             <section className="p-4">
                 <div>
-                    <h1 className="font-semibold">Schedule a Meeting</h1>
-                    <p className="text-muted-foreground text-sm">Note: Creating a meeting will send an email to all participants.</p>
+                    <h1 className="font-semibold">Edit Scheduled Meeting</h1>
+                    <p className="text-muted-foreground text-sm">
+                        Note: Editing this scheduled meeting will send an email to notice all participants.
+                    </p>
                 </div>
                 <form onSubmit={handleSubmit} className="mt-4">
                     <div className="grid gap-3">
@@ -172,14 +185,14 @@ const create = () => {
                             <InputError className="text-sm" message={errors.end_time}></InputError>
                         </div>
                         <div className="grid place-content-end">
-                            <Button disabled={processing}>
+                            <Button disabled={processing || data === scheduler}>
                                 {processing ? (
                                     <div className="flex items-center gap-2">
                                         <LoaderCircle className="animate-spin" />
-                                        <span>Submitting...</span>
+                                        <span>Saving...</span>
                                     </div>
                                 ) : (
-                                    'Submit'
+                                    'Save'
                                 )}
                             </Button>
                         </div>
@@ -190,4 +203,4 @@ const create = () => {
     );
 };
 
-export default create;
+export default edit;

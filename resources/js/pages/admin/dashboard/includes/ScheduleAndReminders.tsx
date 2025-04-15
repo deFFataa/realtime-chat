@@ -13,47 +13,31 @@ import {
     parse,
     parseISO,
     startOfToday,
+    isBefore,
+    startOfDay,
+
 } from 'date-fns';
-import { CalendarClock, ChevronLeftIcon, ChevronRightIcon, FoldVerticalIcon } from 'lucide-react';
+import { CalendarClock, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { useState } from 'react';
 
-const meetings = [
-    {
-        id: 1,
-        agenda_name: 'Agenda Name 1',
-        startDatetime: '2025-04-22T13:00',
-        endDatetime: '2025-04-22T14:30',
-    },
-    {
-        id: 2,
-        agenda_name: 'Agenda Name 2',
-        startDatetime: '2025-04-24T09:00',
-        endDatetime: '2025-05-20T11:30',
-    },
-    {
-        id: 3,
-        agenda_name: 'Agenda Name 3',
-        startDatetime: '2025-05-20T17:00',
-        endDatetime: '2025-05-20T18:30',
-    },
-    {
-        id: 4,
-        agenda_name: 'Agenda Name 4',
-        startDatetime: '2025-04-28T13:00',
-        endDatetime: '2025-04-28T14:30',
-    },
-    {
-        id: 5,
-        agenda_name: 'Agenda Name 5',
-        startDatetime: '2025-05-13T14:00',
-        endDatetime: '2025-05-13T14:30',
-    },
-];
-function classNames(...classes: any) {
+function classNames(...classes: Array<string | undefined | null | false>) {
     return classes.filter(Boolean).join(' ');
 }
 
-const ScheduleAndReminders = () => {
+interface Props {
+    schedule: Array<{
+        id: number;
+        title: string;
+        description: string;
+        date_of_meeting: string;
+        start_time: string;
+        end_time: string;
+    }>;
+}
+
+const ScheduleAndReminders = ({ schedule }: Props) => {
+    const meetings = schedule;
+
     let today = startOfToday();
     let [selectedDay, setSelectedDay] = useState(today);
     let [currentMonth, setCurrentMonth] = useState(format(today, 'MMM-yyyy'));
@@ -74,7 +58,7 @@ const ScheduleAndReminders = () => {
         setCurrentMonth(format(firstDayNextMonth, 'MMM-yyyy'));
     }
 
-    let selectedDayMeetings = meetings.filter((meeting) => isSameDay(parseISO(meeting.startDatetime), selectedDay));
+    let selectedDayMeetings = meetings.filter((meeting) => isSameDay(parseISO(meeting.date_of_meeting), selectedDay));
 
     return (
         <div className="bg-background h-full overflow-auto rounded-md p-4 shadow">
@@ -92,7 +76,7 @@ const ScheduleAndReminders = () => {
                         <PopoverContent className="w-fit">
                             <div className="grid gap-4">
                                 <div className="space-y-2">
-                                    <Link href="/admin/users" className="hover:bg-muted rounded-md p-2 text-start text-sm">
+                                    <Link href="/admin/meeting-scheduler" className="hover:bg-muted rounded-md p-2 text-start text-sm">
                                         View All
                                     </Link>
                                 </div>
@@ -142,19 +126,19 @@ const ScheduleAndReminders = () => {
                                                     type="button"
                                                     onClick={() => setSelectedDay(day)}
                                                     className={classNames(
-                                                        isEqual(day, selectedDay) && 'text-white',
+                                                        isEqual(day, selectedDay) && 'text-secondary',
                                                         !isEqual(day, selectedDay) && isToday(day) && 'text-primary',
                                                         !isEqual(day, selectedDay) &&
                                                             !isToday(day) &&
                                                             isSameMonth(day, firstDayCurrentMonth) &&
-                                                            'text-gray-900',
+                                                            'text-secondary-foreground',
                                                         !isEqual(day, selectedDay) &&
                                                             !isToday(day) &&
                                                             !isSameMonth(day, firstDayCurrentMonth) &&
-                                                            'text-gray-400',
+                                                            'text-muted',
                                                         isEqual(day, selectedDay) && isToday(day) && 'bg-primary',
-                                                        isEqual(day, selectedDay) && !isToday(day) && 'bg-gray-900',
-                                                        !isEqual(day, selectedDay) && 'hover:bg-gray-200',
+                                                        isEqual(day, selectedDay) && !isToday(day) && 'bg-muted-foreground',
+                                                        !isEqual(day, selectedDay) && 'hover:bg-muted',
                                                         (isEqual(day, selectedDay) || isToday(day)) && 'font-semibold',
                                                         'mx-auto flex h-8 w-8 items-center justify-center rounded-full',
                                                     )}
@@ -164,15 +148,15 @@ const ScheduleAndReminders = () => {
                                             </PopoverTrigger>
                                             <PopoverContent>
                                                 <section>
-                                                    <h2 className="font-semibold text-gray-900">
+                                                    <h2 className="font-semibold text-secondary-foreground">
                                                         Schedule for{' '}
                                                         <time dateTime={format(selectedDay, 'yyyy-MM-dd')}>{format(selectedDay, 'MMM dd, yyy')}</time>
                                                     </h2>
-                                                    <ol className="mt-4 space-y-1 text-sm leading-6 text-gray-500">
+                                                    <ol className="mt-4 space-y-1 text-sm leading-6 text-muted-foreground">
                                                         {selectedDayMeetings.length > 0 ? (
                                                             selectedDayMeetings.map((meeting) => <Meeting meeting={meeting} key={meeting.id} />)
                                                         ) : (
-                                                            <p>No meetings for today.</p>
+                                                            <p>No meetings for this day.</p>
                                                         )}
                                                     </ol>
                                                 </section>
@@ -180,8 +164,18 @@ const ScheduleAndReminders = () => {
                                         </Popover>
 
                                         <div className="mx-auto mt-1 h-1 w-1">
-                                            {meetings.some((meeting) => isSameDay(parseISO(meeting.startDatetime), day)) && (
-                                                <div className="h-1 w-1 rounded-full bg-sky-500"></div>
+                                            {meetings.some((meeting) => isSameDay(parseISO(meeting.date_of_meeting), day)) && (
+                                                <div
+                                                    className={`h-1 w-1 rounded-full ${
+                                                        meetings.some(
+                                                            (meeting) =>
+                                                                isSameDay(parseISO(meeting.date_of_meeting), day) &&
+                                                                isBefore(parseISO(meeting.date_of_meeting), startOfDay(new Date())),
+                                                        )
+                                                            ? 'bg-muted-foreground'
+                                                            : 'bg-primary'
+                                                    }`}
+                                                ></div>
                                             )}
                                         </div>
                                     </div>
@@ -196,16 +190,15 @@ const ScheduleAndReminders = () => {
 };
 
 function Meeting({ meeting }: any) {
-    let startDateTime = parseISO(meeting.startDatetime);
-    let endDateTime = parseISO(meeting.endDatetime);
+    const startTime = format(new Date(`1970-01-01T${meeting.start_time}`), 'h:mm a');
+    const endTime = format(new Date(`1970-01-01T${meeting.end_time}`), 'h:mm a');
 
     return (
         <li className="group flex items-center space-x-4 rounded-xl">
             <div className="flex-auto">
-                <p className="text-gray-900">{meeting.agenda_name}</p>
+                <p className="text-secondary-foreground">{meeting.title}</p>
                 <p className="mt-0.5">
-                    <time dateTime={meeting.startDatetime}>{format(startDateTime, 'h:mm a')}</time> -{' '}
-                    <time dateTime={meeting.endDatetime}>{format(endDateTime, 'h:mm a')}</time>
+                    <time dateTime={meeting.start_time}>{startTime}</time> - <time dateTime={meeting.end_time}>{endTime}</time>
                 </p>
             </div>
         </li>
