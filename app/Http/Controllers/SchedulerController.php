@@ -7,7 +7,9 @@ use Inertia\Inertia;
 use App\Models\Scheduler;
 use Illuminate\Http\Request;
 use App\Models\MeetingAttendance;
+use App\Notifications\SendEmailAttendance;
 use App\Http\Requests\StoreSchedulerRequest;
+use Illuminate\Support\Facades\Notification;
 use App\Http\Requests\UpdateSchedulerRequest;
 
 class SchedulerController extends Controller
@@ -48,18 +50,25 @@ class SchedulerController extends Controller
             'start_time' => ['required'],
             'end_time' => ['required'],
         ]);
-
-        // dd($validated);
-
+    
         try {
-            Scheduler::create($validated);
+            // Create the meeting
+            $meeting = Scheduler::create($validated);
+    
+            // Get users with 'user' role
+            $users = User::where('role', 'user')->get();
+    
+            // Send the attendance notification to all users
+            Notification::send($users, new SendEmailAttendance($meeting));
+
+    
         } catch (\Throwable $th) {
             return back()->with('error', $th->getMessage());
         }
-
-        return redirect()->back();
-
+    
+        return redirect()->back()->with('success', 'Meeting created and notifications sent.');
     }
+    
 
     /**
      * Display the specified resource.
@@ -115,5 +124,27 @@ class SchedulerController extends Controller
         }
 
         return redirect()->back();
+    }
+
+    public function showConfirmation(Scheduler $scheduler, User $user)
+    {
+        return Inertia::render('admin/scheduler/showConfirmation', [
+            'scheduler' => $scheduler,
+            'user' => $user
+        ]);
+    }
+
+    public function confirm(Scheduler $scheduler, User $user)
+    {
+        try {
+            MeetingAttendance::create([
+                'meeting_id' => $scheduler->id,
+                'user_id' => $user->id,
+            ]);
+        } catch (\Throwable $th) {
+            return back()->with('error', $th->getMessage());
+        }
+
+        return 'You have confirmed your attendance for this meeting. You may now close this window.';
     }
 }

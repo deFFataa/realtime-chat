@@ -10,4 +10,7 @@ Route::middleware('auth')->group(function () {
     Route::get('admin/meeting-scheduler/{scheduler}/edit', [SchedulerController::class, 'edit'])->name('admin.schedules.edit');
     Route::post('admin/meeting-scheduler/{scheduler}/update', [SchedulerController::class, 'update'])->name('admin.schedules.update');
     Route::delete('admin/meeting-scheduler/{scheduler}', [SchedulerController::class, 'destroy'])->name('admin.schedules.destroy');
+
+    Route::get('attendance/{scheduler}/confirm/{user}', [SchedulerController::class, 'showConfirmation'])->name('admin.schedules.showConfirm');
+    Route::post('attendance/{scheduler}/confirm/{user}', [SchedulerController::class, 'confirm'])->name('admin.schedules.confirm');
 });

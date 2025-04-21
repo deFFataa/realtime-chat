@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Notifications\SendResetPassword;
+use App\Notifications\SendVerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -31,6 +33,16 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'remember_token',
     ];
+
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new SendResetPassword($token));
+    }
+
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new SendVerifyEmail);
+    }
 
     public function getAgeAttribute()
     {
@@ -74,5 +86,5 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(MeetingAttendance::class);
     }
-    
+
 }

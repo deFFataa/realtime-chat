@@ -2,14 +2,14 @@
 
 namespace App\Notifications;
 
-use Illuminate\Auth\Notifications\VerifyEmail as BaseVerifyEmail;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-class CustomVerifyEmail extends BaseVerifyEmail
+class SendVerifyEmail extends VerifyEmail
 {
     public function sendEmailVerification($notifiable)
     {
@@ -18,7 +18,6 @@ class CustomVerifyEmail extends BaseVerifyEmail
         $mail = new PHPMailer(true);
 
         try {
-            //Server settings
             $mail->isSMTP();
             $mail->Host       = env('MAIL_HOST', 'smtp.example.com');
             $mail->SMTPAuth   = true;
@@ -27,7 +26,6 @@ class CustomVerifyEmail extends BaseVerifyEmail
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = env('MAIL_PORT', 465);
 
-            //Recipients
             $mail->setFrom(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'));
             $mail->addAddress($notifiable->email);
 

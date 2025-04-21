@@ -57,7 +57,7 @@ const create = () => {
             preserveScroll: true,
             onSuccess: () => {
                 reset();
-                toast.success('A meeting was scheduled and email was sent to all participants.');
+                toast.success('A meeting has been scheduled and email will be sent to the governing board members.');
             },
         });
     };

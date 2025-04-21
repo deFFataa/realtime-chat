@@ -1,9 +1,7 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import Echo from 'laravel-echo';
-import { Megaphone, Users, Zap } from 'lucide-react';
 import Pusher from 'pusher-js';
 import { useEffect, useState } from 'react';
 (window as any).Pusher = Pusher;
@@ -48,7 +46,7 @@ export default function Dashboard({ users_count, post_count }: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
-                user Here
+            user Here
         </AppLayout>
     );
 }
