@@ -1,13 +1,15 @@
 <?php
 
+use App\Models\Post;
+use App\Models\User;
+use Inertia\Inertia;
+use App\Models\Scheduler;
 use App\Events\TotalPosts;
 use App\Events\TotalUsers;
-use App\Models\Post;
-use App\Models\Scheduler;
-use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SchedulerController;
+use Illuminate\Support\Facades\URL;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -43,6 +45,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('admin.dashboard');
 });
 
+Route::get('attendance/{scheduler}/confirm/{user}', [SchedulerController::class, 'confirmViaSignedUrl'])
+    ->name('admin.schedules.confirm.signed')
+    ->middleware('signed'); // <-- this is important
+
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/post.php';
@@ -51,3 +57,4 @@ require __DIR__ . '/conversation.php';
 require __DIR__ . '/chat.php';
 require __DIR__ . '/admin_users.php';
 require __DIR__ . '/scheduler.php';
+require __DIR__ . '/agenda.php';

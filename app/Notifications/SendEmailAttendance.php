@@ -2,15 +2,19 @@
 
 namespace App\Notifications;
 
+use Carbon\Carbon;
+use App\Models\User;
+use App\Models\Scheduler;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Markdown;
+use App\Models\MeetingAttendance;
 use App\Channels\PHPMailerChannel;
+use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\PHPMailer;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use PHPMailer\PHPMailer\Exception;
-use Carbon\Carbon;
 
 class SendEmailAttendance extends Notification implements ShouldQueue
 {
@@ -39,6 +43,16 @@ class SendEmailAttendance extends Notification implements ShouldQueue
 
     public function toPHPMailer($notifiable)
     {
+
+        $url = URL::temporarySignedRoute(
+            'admin.schedules.confirm.signed',
+            now()->addMinutes(60), // URL expires in 60 minutes
+            [
+                'scheduler' => $this->scheduler->id,
+                'user' => $notifiable->id,
+            ]
+        );
+
         $mailMessage = (new MailMessage)
             ->subject('Meeting Notification')
             ->greeting('Hello!')
@@ -49,7 +63,7 @@ class SendEmailAttendance extends Notification implements ShouldQueue
                 strtolower(Carbon::createFromFormat('H:i', $this->scheduler->start_time)->format('g:i a')) . ' - ' .
                 strtolower(Carbon::createFromFormat('H:i', $this->scheduler->end_time)->format('g:i a')))
             ->line('Please click the button below to confirm your attendance.')
-            ->action('Confirm Attendance', $this->attendanceUrl($notifiable))
+            ->action('Confirm Attendance', $url)
             ->line('If you did not request this, no further action is required.');
 
 
@@ -83,10 +97,27 @@ class SendEmailAttendance extends Notification implements ShouldQueue
         return null;
     }
 
-    protected function attendanceUrl($notifiable)
+    public function confirmViaSignedUrl(Scheduler $scheduler, User $user)
     {
-        return url('/attendance/' . $this->scheduler->id . '/confirm/' . $notifiable->id);
+        try {
+            $alreadyConfirmed = MeetingAttendance::where('meeting_id', $scheduler->id)
+                ->where('user_id', $user->id)
+                ->exists();
+    
+            if ($alreadyConfirmed) {
+                return 'You have already confirmed your attendance for this meeting.';
+            }
+    
+            MeetingAttendance::create([
+                'meeting_id' => $scheduler->id,
+                'user_id' => $user->id,
+            ]);
+            return 'Your attendance has been successfully confirmed. You may now close this window.';
+        } catch (\Throwable $th) {
+            return 'An error occurred: ' . $th->getMessage();
+        }
     }
+    
 
     /**
      * Get the array representation of the notification.

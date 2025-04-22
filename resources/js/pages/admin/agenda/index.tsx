@@ -1,4 +1,16 @@
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AppLayout from '@/layouts/app-layout';
+import { BreadcrumbItem } from '@/types';
+import { Agendas, Props } from '@/types/agenda';
+import { Head, Link } from '@inertiajs/react';
+import { Checkbox } from '@radix-ui/react-checkbox';
 import {
     ColumnDef,
     ColumnFiltersState,
@@ -11,83 +23,21 @@ import {
     useReactTable,
     VisibilityState,
 } from '@tanstack/react-table';
-import { ArrowUpDown, CalendarPlus, ChevronDown, ChevronLeftIcon, ChevronRightIcon, LoaderCircle, Pencil, Trash } from 'lucide-react';
-import { useEffect, useState } from 'react';
-
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { BreadcrumbItem } from '@/types';
-import { Head, Link, useForm } from '@inertiajs/react';
-import { format } from 'date-fns';
-import { toast } from 'sonner';
+import { ArrowUpDown, ChevronDown, ChevronLeftIcon, ChevronRightIcon, Pencil, Plus, Trash } from 'lucide-react';
+import { useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Meeting Schedules',
-        href: '/admin/meeting-scheduler',
+        title: 'Agenda',
+        href: '/admin/agenda',
     },
 ];
 
-interface Props {
-    meeting_schedule: Array<Schedules>;
-    attendance: {
-        item: {
-            [meeting_id: number]: Attendance[];
-        };
-    };
-    users_count: number;
-}
+const index = ({ agendas = [] }: Props) => {
+    const [agenda, setAgenda] = useState(agendas);
+    const data = agenda;
 
-interface Attendance {
-    id: number;
-    meeting_id: number;
-    user_id: number;
-    user: {
-        id: number;
-        name: string;
-    };
-}
-
-interface Schedules {
-    id: number;
-    title: string;
-    description: string;
-    start_time: string;
-    end_time: string;
-}
-
-const index = ({ meeting_schedule = [], attendance, users_count }: Props) => {
-    const [attendance_list, setAttendance] = useState(attendance);
-    const [schedules, setSchedules] = useState(meeting_schedule);
-    const data = schedules;
-
-    console.log(attendance_list.item);
-
-    useEffect(() => {
-        setSchedules(meeting_schedule);
-    }, [meeting_schedule]);
-
-    const { delete: destroy, processing } = useForm();
-
-    const handleDelete = (id: number, e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        destroy(route('admin.schedules.destroy', id), {
-            preserveScroll: true,
-            onSuccess: () => {
-                toast.success('Meeting is deleted.');
-            },
-        });
-    };
-
-    const columns: ColumnDef<Schedules>[] = [
+    const columns: ColumnDef<Agendas>[] = [
         {
             id: 'select',
             header: ({ table }) => (
@@ -108,7 +58,7 @@ const index = ({ meeting_schedule = [], attendance, users_count }: Props) => {
             header: ({ column }) => {
                 return (
                     <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                        Agenda
+                        Title
                         <ArrowUpDown />
                     </Button>
                 );
@@ -116,78 +66,18 @@ const index = ({ meeting_schedule = [], attendance, users_count }: Props) => {
             cell: ({ row }) => <div className="font-medium">{row.getValue('title')}</div>,
         },
         {
-            accessorKey: 'description',
-            header: 'Description',
+            accessorKey: 'agenda_file_loc',
+            header: 'File',
             cell: ({ row }) => {
-                const description = String(row.getValue('description') || '-');
-                const trimmed = description.length > 80 ? description.slice(0, 80) + '…' : description;
+                const fileName = String(row.getValue('agenda_file_loc') || '-');
+                const trimmed = fileName.length > 80 ? fileName.slice(0, 80) + '…' : fileName;
 
-                return <div className="max-w-md text-wrap capitalize">{trimmed}</div>;
-            },
-        },
-        {
-            accessorKey: 'date_of_meeting',
-            header: ({ column }) => {
-                return (
-                    <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                        Date
-                        <ArrowUpDown />
-                    </Button>
-                );
-            },
-            cell: ({ row }) => <div className="">{format(new Date(row.getValue('date_of_meeting')), 'MMM dd, yyyy')}</div>,
-        },
-        {
-            accessorKey: 'end_time',
-            header: () => <div>Time</div>,
-            cell: ({ row }) => {
-                const startTime = new Date(`1970-01-01T${row.original.start_time}Z`);
-                const endTime = new Date(`1970-01-01T${row.original.end_time}Z`);
+                const fileUrl = `/storage/agendas/${fileName}`;
 
                 return (
-                    <div>
-                        {format(startTime, 'h:mm a')} - {format(endTime, 'h:mm a')}
-                    </div>
-                );
-            },
-        },
-        {
-            accessorKey: '',
-            header: 'Attendance',
-            cell: ({ row }) => {
-                const meetingId = row.original.id;
-                const attendances = attendance_list.item[meetingId] || [];
-
-                return (
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <Button size="sm" variant="outline" className="flex w-full justify-start">
-                                <span className="ml-2">
-                                    {attendances.length}/{users_count}
-                                </span>
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
-                            <form>
-                                <DialogHeader>
-                                    <DialogTitle>Attendance</DialogTitle>
-                                </DialogHeader>
-                                <div className="grid gap-4 py-4">
-                                    <div className="bg-muted/20 grid max-h-[300px] items-center overflow-y-auto rounded-md">
-                                        {attendances.length === 0 && <p className="p-2 text-center">No One Responded Yet.</p>}
-                                        {attendances.map((a) => (
-                                            <div key={a.id} className="flex items-center gap-2 border-b p-2">
-                                                <Avatar>
-                                                    <AvatarFallback>{a.user.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <span>{a.user.name}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </form>
-                        </DialogContent>
-                    </Dialog>
+                    <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="max-w-md text-wrap border-b border-secondary-foreground hover:border-primary hover:text-primary ease-in duration-100 p-1" download>
+                        {trimmed}
+                    </a>
                 );
             },
         },
@@ -223,7 +113,7 @@ const index = ({ meeting_schedule = [], attendance, users_count }: Props) => {
                                             This action cannot be undone. Are you sure you want to permanently delete this meeting?
                                         </DialogDescription>
                                     </DialogHeader>
-                                    <DialogFooter>
+                                    {/* <DialogFooter>
                                         <form onSubmit={(e) => handleDelete(row.getValue('id'), e)}>
                                             <Button variant={'destructive'} disabled={processing}>
                                                 {processing ? (
@@ -236,7 +126,7 @@ const index = ({ meeting_schedule = [], attendance, users_count }: Props) => {
                                                 )}
                                             </Button>
                                         </form>
-                                    </DialogFooter>
+                                    </DialogFooter> */}
                                 </DialogContent>
                             </Dialog>
 
@@ -275,29 +165,25 @@ const index = ({ meeting_schedule = [], attendance, users_count }: Props) => {
     });
 
     const columnDisplayNames = {
-        title: 'Agenda',
-        description: 'Description',
-        date_of_meeting: 'Date',
-        end_time: 'Time',
+        title: 'Title',
         id: 'Action',
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Meeting Schedules" />
-
+            <Head title="Agenda" />
             <div className="w-full p-4">
                 <div>
                     <Button asChild>
-                        <Link href={route('admin.schedules.create')}>
-                            Schedule a Meeting <CalendarPlus />
+                        <Link href={route('admin.agenda.create')}>
+                            Upload Agenda <Plus />
                         </Link>
                     </Button>
                 </div>
-                {schedules.length === 0 && (
-                    <div className="text-muted-foreground flex h-100 items-center justify-center text-lg font-medium">No schedules found.</div>
+                {agenda.length === 0 && (
+                    <div className="text-muted-foreground flex h-100 items-center justify-center text-lg font-medium">No agendas found.</div>
                 )}
-                {schedules.length > 0 && (
+                {agenda.length > 0 && (
                     <>
                         <div className="flex items-center py-4">
                             <Input
@@ -469,4 +355,5 @@ const index = ({ meeting_schedule = [], attendance, users_count }: Props) => {
         </AppLayout>
     );
 };
+
 export default index;

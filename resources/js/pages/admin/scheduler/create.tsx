@@ -68,7 +68,7 @@ const create = () => {
             <section className="p-4">
                 <div>
                     <h1 className="font-semibold">Schedule a Meeting</h1>
-                    <p className="text-muted-foreground text-sm">Note: Creating a meeting will send an email to all participants.</p>
+                    <p className="text-muted-foreground text-sm">Note: Creating a meeting will send an email to all governing board members.</p>
                 </div>
                 <form onSubmit={handleSubmit} className="mt-4">
                     <div className="grid gap-3">
@@ -176,10 +176,10 @@ const create = () => {
                                 {processing ? (
                                     <div className="flex items-center gap-2">
                                         <LoaderCircle className="animate-spin" />
-                                        <span>Submitting...</span>
+                                        <span>Creating...</span>
                                     </div>
                                 ) : (
-                                    'Submit'
+                                    'Create Meeting'
                                 )}
                             </Button>
                         </div>

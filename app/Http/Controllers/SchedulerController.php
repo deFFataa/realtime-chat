@@ -50,25 +50,25 @@ class SchedulerController extends Controller
             'start_time' => ['required'],
             'end_time' => ['required'],
         ]);
-    
+
         try {
             // Create the meeting
             $meeting = Scheduler::create($validated);
-    
+
             // Get users with 'user' role
             $users = User::where('role', 'user')->get();
-    
+
             // Send the attendance notification to all users
             Notification::send($users, new SendEmailAttendance($meeting));
 
-    
+
         } catch (\Throwable $th) {
             return back()->with('error', $th->getMessage());
         }
-    
+
         return redirect()->back()->with('success', 'Meeting created and notifications sent.');
     }
-    
+
 
     /**
      * Display the specified resource.
@@ -134,17 +134,26 @@ class SchedulerController extends Controller
         ]);
     }
 
-    public function confirm(Scheduler $scheduler, User $user)
+    public function confirmViaSignedUrl(Scheduler $scheduler, User $user)
     {
         try {
+            $alreadyConfirmed = MeetingAttendance::where('meeting_id', $scheduler->id)
+                ->where('user_id', $user->id)
+                ->exists();
+
+            if ($alreadyConfirmed) {
+                return 'You have already confirmed your attendance for this meeting.';
+            }
+
             MeetingAttendance::create([
                 'meeting_id' => $scheduler->id,
                 'user_id' => $user->id,
             ]);
-        } catch (\Throwable $th) {
-            return back()->with('error', $th->getMessage());
-        }
 
-        return 'You have confirmed your attendance for this meeting. You may now close this window.';
+            return 'Your attendance has been successfully confirmed. You may now close this window.';
+        } catch (\Throwable $th) {
+            return 'An error occurred: ' . $th->getMessage();
+        }
     }
+
 }
