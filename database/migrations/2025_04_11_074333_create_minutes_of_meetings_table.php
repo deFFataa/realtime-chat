@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('minutes_of_meetings', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('agenda_id');
+            $table->string('title');
             $table->foreign('agenda_id')->references('id')->on('agendas')->onDelete('cascade');
             $table->string('mom_file_loc');
             $table->timestamps();

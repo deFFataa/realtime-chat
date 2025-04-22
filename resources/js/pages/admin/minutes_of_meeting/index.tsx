@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
-import { Agendas, Props } from '@/types/agenda';
+import { MinutesOfMeeting, Props } from '@/types/minutes_of_meeting';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Checkbox } from '@radix-ui/react-checkbox';
 import {
@@ -29,35 +29,37 @@ import { toast } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Agenda',
-        href: '/admin/agenda',
+        title: 'Minutes of the Meeting',
+        href: '/admin/minutes-of-the-meeting',
     },
 ];
 
-const index = ({ agendas = [] }: Props) => {
-    const [agenda, setAgenda] = useState(agendas);
-    const data = agenda;
+const index = ({ minutes_of_meeting = [] }: Props) => {
+    const [minutesOfMeeting, setMinutesOfMeeting] = useState(minutes_of_meeting);
+    console.log(minutes_of_meeting);
+
+    const data = minutesOfMeeting;
 
     useEffect(() => {
-        setAgenda(agendas);
-    }, [agendas]);
+        setMinutesOfMeeting(minutes_of_meeting);
+    }, [minutes_of_meeting]);
 
     const { processing, delete: destroy } = useForm();
 
     const handleDelete = (id: number, e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        destroy(route('admin.agenda.destroy', id), {
+        destroy(route('admin.mom.destroy', id), {
             onSuccess: () => {
-                toast.success('Agenda deleted successfully');
+                toast.success('Deleted successfully');
             },
             onError: (errors) => {
-                toast.error('Error deleting agenda');
+                toast.error('Error deleting. Please try again.');
                 console.log(errors);
             },
         });
     };
 
-    const columns: ColumnDef<Agendas>[] = [
+    const columns: ColumnDef<MinutesOfMeeting>[] = [
         {
             id: 'select',
             header: ({ table }) => (
@@ -74,6 +76,16 @@ const index = ({ agendas = [] }: Props) => {
             enableHiding: false,
         },
         {
+            accessorKey: 'agenda_title',
+            header: ({ column }) => (
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                    Agenda
+                    <ArrowUpDown />
+                </Button>
+            ),
+            cell: ({ row }) => <div className="font-medium">{row.getValue('agenda_title')}</div>,
+        },
+        {
             accessorKey: 'title',
             header: ({ column }) => {
                 return (
@@ -85,14 +97,15 @@ const index = ({ agendas = [] }: Props) => {
             },
             cell: ({ row }) => <div className="font-medium">{row.getValue('title')}</div>,
         },
+
         {
-            accessorKey: 'agenda_file_loc',
+            accessorKey: 'mom_file_loc',
             header: 'File',
             cell: ({ row }) => {
-                const fileName = String(row.getValue('agenda_file_loc') || '-');
+                const fileName = String(row.getValue('mom_file_loc') || '-');
                 const trimmed = fileName.length > 80 ? fileName.slice(0, 80) + '…' : fileName;
 
-                const fileUrl = `/storage/agendas/${fileName}`;
+                const fileUrl = `/storage/minutes_of_the_meeting/${fileName}`;
 
                 return (
                     <a
@@ -115,7 +128,7 @@ const index = ({ agendas = [] }: Props) => {
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger className="hover:bg-muted-foreground/30 rounded-full">
-                                <Link href={route('admin.agenda.edit', row.getValue('id'))}>
+                                <Link href={route('admin.mom.edit', row.getValue('id'))}>
                                     <Pencil className="p-[5px]" />
                                 </Link>
                             </TooltipTrigger>
@@ -136,7 +149,7 @@ const index = ({ agendas = [] }: Props) => {
                                     <DialogHeader>
                                         <DialogTitle>Are you sure you want to delete this file?</DialogTitle>
                                         <DialogDescription>
-                                            All of the data that is associated with this file will be deleted. This action cannot be undone. Are you sure you want to permanently delete this file?
+                                            This action cannot be undone. Are you sure you want to permanently delete this file?
                                         </DialogDescription>
                                     </DialogHeader>
                                     <DialogFooter>
@@ -190,6 +203,8 @@ const index = ({ agendas = [] }: Props) => {
         },
     });
 
+    console.log(table.getAllColumns());
+
     const columnDisplayNames = {
         title: 'Title',
         id: 'Action',
@@ -201,15 +216,17 @@ const index = ({ agendas = [] }: Props) => {
             <div className="w-full p-4">
                 <div>
                     <Button asChild>
-                        <Link href={route('admin.agenda.create')}>
-                            Upload Agenda <Plus />
+                        <Link href={route('admin.mom.create')}>
+                            Upload Minutes of the Meeting File <Plus />
                         </Link>
                     </Button>
                 </div>
-                {agenda.length === 0 && (
-                    <div className="text-muted-foreground flex h-100 items-center justify-center text-lg font-medium">No agendas found.</div>
+                {minutesOfMeeting.length === 0 && (
+                    <div className="text-muted-foreground flex h-100 items-center justify-center text-lg font-medium">
+                        No minutes of the meeting files found.
+                    </div>
                 )}
-                {agenda.length > 0 && (
+                {minutesOfMeeting.length > 0 && (
                     <>
                         <div className="flex items-center py-4">
                             <Input

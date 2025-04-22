@@ -3,13 +3,14 @@
 use App\Models\Post;
 use App\Models\User;
 use Inertia\Inertia;
+use App\Models\Agenda;
 use App\Models\Scheduler;
 use App\Events\TotalPosts;
 use App\Events\TotalUsers;
+use App\Models\MinutesOfMeeting;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SchedulerController;
-use Illuminate\Support\Facades\URL;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -39,15 +40,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->count(),
             'all_users' => User::where('role', 'user')->get(['name', 'created_at']),
             'schedule' => Scheduler::all(),
-            broadcast(new TotalUsers()),
-            broadcast(new TotalPosts())
+            'agenda' => Agenda::count(),
+            'minutesOfMeeting' => MinutesOfMeeting::count(),
         ]);
     })->name('admin.dashboard');
 });
 
 Route::get('attendance/{scheduler}/confirm/{user}', [SchedulerController::class, 'confirmViaSignedUrl'])
     ->name('admin.schedules.confirm.signed')
-    ->middleware('signed'); // <-- this is important
+    ->middleware('signed');
 
 
 require __DIR__ . '/settings.php';
@@ -58,3 +59,4 @@ require __DIR__ . '/chat.php';
 require __DIR__ . '/admin_users.php';
 require __DIR__ . '/scheduler.php';
 require __DIR__ . '/agenda.php';
+require __DIR__ . '/minutes_of_meeting.php';

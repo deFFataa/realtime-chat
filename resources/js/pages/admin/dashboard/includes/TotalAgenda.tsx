@@ -11,7 +11,7 @@ const TotalAgenda = ({ totalAgenda = 0 }: Props) => {
     return (
         <div className="bg-background grid h-full w-full rounded-md p-4 font-medium shadow">
             <div className="relative">
-                <h2 className="text-sm">Total Agenda</h2>
+                <h2 className="text-sm">Total Agenda Files</h2>
                 <div className="absolute top-0 right-0">
                     <Popover>
                         <PopoverTrigger asChild>

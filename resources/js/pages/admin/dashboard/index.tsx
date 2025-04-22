@@ -31,14 +31,21 @@ interface Props {
         start_time: string;
         end_time: string;
     }>;
+    agenda: number;
+    minutesOfMeeting: number;
 }
 
-export default function Dashboard({ users_count, post_count, new_users, active_users, all_users, schedule }: Props) {
+export default function Dashboard({ users_count, post_count, new_users, active_users, all_users, schedule, agenda, minutesOfMeeting }: Props) {
     const [totalUsers, setTotalUsers] = useState(users_count || 0);
     const [totalPosts, setTotalPosts] = useState(post_count || 0);
     const [totalActiveUsers, setTotalActiveUsers] = useState(active_users || 0);
     const [newUser, setNewUser] = useState(new_users);
     const [allUsers, setAllUsers] = useState(all_users);
+    const [totalAgenda, setTotalAgenda] = useState(agenda || 0);
+    const [totalMoM, setTotalMoM] = useState(minutesOfMeeting || 0);
+
+    console.log(totalMoM);
+    
 
     useEffect(() => {
         const echo = new Echo({
@@ -65,8 +72,8 @@ export default function Dashboard({ users_count, post_count, new_users, active_u
             <Head title="Dashboard" />
             <div className="bg-secondary flex h-full flex-1 flex-col gap-4 p-4">
                 <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    <TotalAgenda />
-                    <TotalMoM />
+                    <TotalAgenda totalAgenda={totalAgenda}/>
+                    <TotalMoM totalMoM={totalMoM}/>
                     <TotalBoardResolution />
                     <TotalDiscussionBoard />
                     <ActiveUsers totalActiveUsers={totalActiveUsers} />

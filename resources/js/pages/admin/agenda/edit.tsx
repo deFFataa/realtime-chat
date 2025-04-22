@@ -4,9 +4,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { toast } from 'sonner';
+
+interface Agenda {
+    agenda: {
+        id: number;
+        title: string;
+        user_id: number;
+        agenda_file_loc: string;
+    };
+}
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -19,34 +28,37 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const create = () => {
-    const auth_user_id = (usePage() as any).props.auth.user.id;
-
-    const { data, setData, post, processing, errors, reset } = useForm({
-        title: '',
-        user_id: auth_user_id,
+const edit = ({ agenda }: Agenda) => {
+    const { data, setData, processing, errors, reset } = useForm({
+        title: agenda.title,
+        user_id: agenda.user_id,
         agenda_file_loc: null as File | null,
     });
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        post(route('admin.agenda.store'), {
+        router.post(route('admin.agenda.update', agenda.id), {
+            ...data,
+            _method: 'PUT',
+        }, {
             forceFormData: true,
-            preserveScroll: true,
             onSuccess: () => {
-                reset();
-                toast.success('Uploaded successfully');
+                toast.success('Agenda updated successfully');
+            },
+            onError: (errors) => {
+                toast.error('Error updating agenda');
+                console.log(errors);
             },
         });
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Upload Agenda" />
+            <Head title="Edit Agenta File" />
             <section className="p-4">
                 <div>
                     <h1 className="font-semibold">Upload File Agenda</h1>
-                    {/* <p className="text-muted-foreground text-sm">Note: Creating a meeting will send an email to all governing board members.</p> */}
+                    <p className="text-muted-foreground text-sm">Note: Replacing the current uploaded file will delete the previous file.</p>
                 </div>
                 <form onSubmit={handleSubmit} className="mt-4">
                     <div className="grid gap-3">
@@ -63,6 +75,7 @@ const create = () => {
                         </div>
                         <div className="grid w-full items-center gap-1.5">
                             <Label htmlFor="agenda_file_loc">File</Label>
+                            {agenda.agenda_file_loc && <p className="text-sm"><span className='font-semibold'>Current file:</span> {agenda.agenda_file_loc}</p>}
                             <Input
                                 type="file"
                                 name="agenda_file_loc"
@@ -96,4 +109,4 @@ const create = () => {
     );
 };
 
-export default create;
+export default edit;
