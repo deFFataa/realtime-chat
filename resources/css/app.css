@@ -214,3 +214,10 @@
     @apply bg-background text-foreground;
     }
 }
+
+.bg-img-base{
+    background-image: url('/images/collab.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}

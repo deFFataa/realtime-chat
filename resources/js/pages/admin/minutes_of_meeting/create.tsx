@@ -56,8 +56,8 @@ const create = ({ agendas }: Props) => {
             <Head title="Upload Minutes of the Meeting" />
             <section className="p-4">
                 <div>
-                    <h1 className="font-semibold">Upload File Agenda</h1>
-                    <p className="text-muted-foreground text-sm">Note: Creating a meeting will send an email to all governing board members.</p>
+                    <h1 className="font-semibold">Upload Minutes of the Meeting File</h1>
+                    <p className="text-muted-foreground text-sm"></p>
                 </div>
                 <form onSubmit={handleSubmit} className="mt-4">
                     <div className="grid gap-3">

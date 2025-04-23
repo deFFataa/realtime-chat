@@ -53,6 +53,7 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $userId = Auth::id();
         Auth::user()->update(['is_loggedin' => false]);
         broadcast(new TotalActiveUsers());
         Auth::guard('web')->logout();
@@ -60,6 +61,6 @@ class AuthenticatedSessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('/login')->with('user_id', $userId);
     }
 }

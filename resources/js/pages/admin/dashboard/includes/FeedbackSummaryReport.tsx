@@ -1,11 +1,14 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useInitials } from '@/hooks/use-initials';
+import { Props } from '@/types/feedback';
 import { Link } from '@inertiajs/react';
+import { formatDistanceToNow } from 'date-fns';
 import { Star } from 'lucide-react';
 
-interface Props {}
+const FeedbackSummaryReport = ({ feedbacks, rating_today, overall_rating }: Props) => {
+    const getInitials = useInitials();
 
-const FeedbackSummaryReport = () => {
     return (
         <div className="bg-background h-full overflow-auto rounded-md p-4 shadow">
             <div className="relative">
@@ -31,40 +34,45 @@ const FeedbackSummaryReport = () => {
                         <div className="flex items-center gap-2">
                             <h2 className="text-sm font-medium">Today's Rating:</h2>
                             <div className="inline-flex items-center">
-                                <h2 className="mr-1 text-sm">5</h2>
+                                <h2 className="text-sm">{rating_today}</h2>
                                 <Star className="fill-yellow-300" color="" size={15} />
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
                             <h2 className="text-sm font-medium">Overall Rating:</h2>
                             <div className="inline-flex items-center">
-                                <h2 className="mr-1 text-sm">5</h2>
+                                <h2 className="text-sm">{overall_rating}</h2>
                                 <Star className="fill-yellow-300" color="" size={15} />
                             </div>
                         </div>
                     </div>
                 </div>
-                <div className="mt-3 flex justify-between pb-4">
-                    <div className="flex items-center gap-2">
-                        <Avatar className="self-start">
-                            <AvatarImage alt="@shadcn" />
-                            <AvatarFallback>J</AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                            <div className="inline-flex items-center">
-                                <h2 className="mr-2 text-sm font-medium">John</h2>
-
-                                <Star className="fill-yellow-300" color="" size={15} />
-                                <Star className="fill-yellow-300" color="" size={15} />
-                                <Star className="fill-yellow-300" color="" size={15} />
-                                <Star className="fill-yellow-300" color="" size={15} />
-                                <Star className="fill-yellow-300" color="" size={15} />
+                {feedbacks?.map((feedback) => (
+                    <div key={feedback.id} className="mt-3 flex justify-between pb-4">
+                        <div className="flex items-center gap-2">
+                            <Avatar className="self-start">
+                                <AvatarFallback>{getInitials(feedback.user.name)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col">
+                                <div className="inline-flex items-center">
+                                    <h2 className="mr-2 text-sm font-medium">{feedback.user.name}</h2>
+                                    {Array.from({ length: 5 }).map((_, index) => (
+                                        <Star
+                                            key={index}
+                                            className={index < feedback.rating ? 'fill-yellow-300' : 'fill-gray-300'}
+                                            color=""
+                                            size={15}
+                                        />
+                                    ))}
+                                </div>
+                                <div className="bg-primary mt-1 w-fit rounded-tr rounded-b px-2 py-1 text-sm text-white">{feedback.comment}</div>
                             </div>
-                            <div className="bg-primary text-secondary mt-1 w-full rounded-tr rounded-b px-2 py-1 text-sm">Design is good.</div>
+                        </div>
+                        <div className="self-start text-sm font-medium">
+                            {formatDistanceToNow(new Date(feedback.created_at), { addSuffix: true })}
                         </div>
                     </div>
-                    <div className="self-start text-sm font-medium">1 minute ago</div>
-                </div>
+                ))}
             </div>
         </div>
     );

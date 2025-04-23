@@ -157,10 +157,10 @@ class AgendaController extends Controller
             $agenda->update($validated);
 
         } catch (\Throwable $th) {
-            return redirect()->back()->with('error', 'Agenda update failed. Please try again.');
+            return redirect()->back();
         }
 
-        return redirect()->back()->with('success', 'Agenda successfully updated.');
+        return redirect()->back();
     }
 
 
@@ -177,8 +177,8 @@ class AgendaController extends Controller
             $agenda->delete();
 
         } catch (\Throwable $th) {
-            return redirect()->back()->with('error', 'Agenda deletion failed. Please try again.');
+            return redirect()->back();
         }
-        return redirect()->back()->with('success', 'Agenda successfully deleted.');
+        return redirect()->back();
     }
 }

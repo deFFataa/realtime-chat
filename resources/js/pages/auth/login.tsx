@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { FormEventHandler } from 'react';
 
@@ -9,6 +9,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
+
+import FeedbackCardDialog from '@/components/FeedbackCardDialog';
+import AuthSplitLayout from '@/layouts/auth/auth-split-layout';
+import AuthSimpleLayout from '@/layouts/auth/auth-simple-layout';
 
 type LoginForm = {
     email: string;
@@ -28,6 +32,8 @@ export default function Login({ status, canResetPassword }: LoginProps) {
         remember: false,
     });
 
+    const loggedOutUser = (usePage() as any).props.flash.user;
+
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
         post(route('login'), {
@@ -36,7 +42,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
     };
 
     return (
-        <AuthLayout title="Log in to your account" description="Enter your email and password below to log in">
+        <AuthSplitLayout title="Log in to your account" description="Enter your email and password below to log in">
             <Head title="Log in" />
 
             <form className="flex flex-col gap-6" onSubmit={submit}>
@@ -104,7 +110,9 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                 </div>
             </form>
 
+            <FeedbackCardDialog user_id={loggedOutUser} />
+
             {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}
-        </AuthLayout>
+        </AuthSplitLayout>
     );
 }

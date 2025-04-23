@@ -33,9 +33,20 @@ interface Props {
     }>;
     agenda: number;
     minutesOfMeeting: number;
+    feedbacks?: Array<{
+        id: number;
+        user: {
+            name: string;
+        };
+        rating: number;
+        comment: string;
+        created_at: string;
+    }>;
+    rating_today: number;
+    overall_rating: number;
 }
 
-export default function Dashboard({ users_count, post_count, new_users, active_users, all_users, schedule, agenda, minutesOfMeeting }: Props) {
+export default function Dashboard({ users_count, post_count, new_users, active_users, all_users, schedule, agenda, minutesOfMeeting, feedbacks, rating_today, overall_rating }: Props) {
     const [totalUsers, setTotalUsers] = useState(users_count || 0);
     const [totalPosts, setTotalPosts] = useState(post_count || 0);
     const [totalActiveUsers, setTotalActiveUsers] = useState(active_users || 0);
@@ -81,7 +92,7 @@ export default function Dashboard({ users_count, post_count, new_users, active_u
                 </div>
                 <div className="grid min-h-0 flex-1 grid-cols-2 gap-4 max-lg:grid-cols-1">
                     <ScheduleAndReminders schedule={schedule}/>
-                    <FeedbackSummaryReport/>
+                    <FeedbackSummaryReport feedbacks={feedbacks} rating_today={rating_today} overall_rating={overall_rating}/>
                 </div>
             </div>
         </AppLayout>

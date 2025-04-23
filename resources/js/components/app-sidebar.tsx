@@ -42,7 +42,7 @@ export function AppSidebar() {
               },
               {
                   title: 'Feedback Report',
-                  href: '/admin/feeback-report',
+                  href: '/admin/feedback-report',
                   icon: Star,
               },
               {
@@ -75,7 +75,7 @@ export function AppSidebar() {
           ];
 
     return (
-        <Sidebar collapsible="icon" variant="inset">
+        <Sidebar collapsible="icon" variant="sidebar">
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>

@@ -47,7 +47,10 @@ class HandleInertiaRequests extends Middleware
             'auth' =>   [
                 'user' => $request->user(),
             ],
+            // 'logout_user' => fn() => 
             'flash' => [
+                'popupThankyou' => fn () => $request->session()->get('popup-thankyou'),
+                'user' => fn () => $request->session()->get('user_id'),
                 'message' => fn () => $request->session()->get('message')
             ],
             'ziggy' => fn (): array => [

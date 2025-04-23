@@ -10,7 +10,7 @@ import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { MinutesOfMeeting, Props } from '@/types/minutes_of_meeting';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { Checkbox } from '@radix-ui/react-checkbox';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     ColumnDef,
     ColumnFiltersState,
@@ -230,7 +230,7 @@ const index = ({ minutes_of_meeting = [] }: Props) => {
                     <>
                         <div className="flex items-center py-4">
                             <Input
-                                placeholder="Search by agenda..."
+                                placeholder="Search by agenda, title, or file..."
                                 value={table.getState().globalFilter ?? ''}
                                 onChange={(event) => table.setGlobalFilter(event.target.value)}
                                 className="max-w-sm"

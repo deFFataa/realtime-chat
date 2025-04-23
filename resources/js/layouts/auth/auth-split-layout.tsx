@@ -14,21 +14,24 @@ export default function AuthSplitLayout({ children, title, description }: PropsW
 
     return (
         <div className="relative grid h-dvh flex-col items-center justify-center px-8 sm:px-0 lg:max-w-none lg:grid-cols-2 lg:px-0">
-            <div className="bg-muted relative hidden h-full flex-col p-10 text-white lg:flex dark:border-r">
-                <div className="absolute inset-0 bg-zinc-900" />
-                <Link href={route('home')} className="relative z-20 flex items-center text-lg font-medium text-primary">
+            <div className="bg-secondary/50 bg-img-base relative hidden h-full flex-col p-10 text-white lg:flex dark:border-r">
+                <div className="absolute inset-0 backdrop-blur-[px]" />
+                <Link href={route('home')} className="text-primary relative z-20 flex items-center text-lg font-medium">
                     <Handshake className="mr-2 size-8" />
-                    <span className='font-bold'>eCollab</span>
+                    <span className="font-bold">eCollab</span>
                 </Link>
-                {quote && (
-                    <div className="relative z-20 mt-auto">
-                        <blockquote className="space-y-2">
-                            <p className="text-lg">&ldquo;{quote.message}&rdquo;</p>
-                            <footer className="text-sm text-primary">{quote.author}</footer>
-                        </blockquote>
-                    </div>
-                )}
+                <div className='mt-auto backdrop-blur-md px-4 py-3 outline rounded-md shadow-2xl'>
+                    {quote && (
+                        <div className="relative z-20 mt-auto">
+                            <blockquote className="space-y-2">
+                                <p className="text-lg text-secondary-foreground font-medium">&ldquo;{quote.message}&rdquo;</p>
+                                <footer className="text-primary text-sm font-medium">{quote.author}</footer>
+                            </blockquote>
+                        </div>
+                    )}
+                </div>
             </div>
+
             <div className="w-full lg:p-8">
                 <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
                     <Link href={route('home')} className="relative z-20 flex items-center justify-center lg:hidden">

@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -9,8 +8,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
-import { Agendas, Props } from '@/types/agenda';
+import { Feedback, Props } from '@/types/feedback';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     ColumnDef,
     ColumnFiltersState,
@@ -23,24 +23,24 @@ import {
     useReactTable,
     VisibilityState,
 } from '@tanstack/react-table';
-import { ArrowUpDown, ChevronDown, ChevronLeftIcon, ChevronRightIcon, LoaderCircle, Pencil, Plus, Trash } from 'lucide-react';
+import { ArrowUpDown, ChevronDown, ChevronLeftIcon, ChevronRightIcon, LoaderCircle, Pencil, Star, Trash } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Agenda',
-        href: '/admin/agenda',
+        title: 'Feedback Report',
+        href: '/admin/feedback-report',
     },
 ];
 
-const index = ({ agendas = [] }: Props) => {
-    const [agenda, setAgenda] = useState(agendas);
-    const data = agenda;
+const index = ({ feedbacks = [], rating_today, overall_rating }: Props) => {
+    const [feedbackList, setFeedbackList] = useState(feedbacks);
+    const data = feedbackList;
 
     useEffect(() => {
-        setAgenda(agendas);
-    }, [agendas]);
+        setFeedbackList(feedbackList);
+    }, [feedbackList]);
 
     const { processing, delete: destroy } = useForm();
 
@@ -57,7 +57,7 @@ const index = ({ agendas = [] }: Props) => {
         });
     };
 
-    const columns: ColumnDef<Agendas>[] = [
+    const columns: ColumnDef<Feedback>[] = [
         {
             id: 'select',
             header: ({ table }) => (
@@ -74,36 +74,44 @@ const index = ({ agendas = [] }: Props) => {
             enableHiding: false,
         },
         {
-            accessorKey: 'title',
+            accessorKey: 'name',
             header: ({ column }) => {
                 return (
                     <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                        Title
+                        Name
                         <ArrowUpDown />
                     </Button>
                 );
             },
-            cell: ({ row }) => <div className="font-medium">{row.getValue('title')}</div>,
+            cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
         },
         {
-            accessorKey: 'agenda_file_loc',
-            header: 'File',
-            cell: ({ row }) => {
-                const fileName = String(row.getValue('agenda_file_loc') || '-');
-                const trimmed = fileName.length > 80 ? fileName.slice(0, 80) + '…' : fileName;
-
-                const fileUrl = `/storage/agendas/${fileName}`;
-
+            accessorKey: 'rating',
+            header: ({ column }) => {
                 return (
-                    <a
-                        href={fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:border-primary hover:text-primary max-w-md text-wrap underline duration-100 ease-in"
-                        download
-                    >
-                        {trimmed}
-                    </a>
+                    <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                        Rating
+                        <ArrowUpDown />
+                    </Button>
+                );
+            },
+            cell: ({ row }) => {
+                return (
+                    <div className="font-medium flex gap-1">
+                        <span>{row.getValue('rating')}</span>
+                        <Star className="fill-yellow-300" color="" size={18} />
+                    </div>
+                );
+            },
+        },
+        {
+            accessorKey: 'comment',
+            header: 'Comment',
+            cell: ({ row }) => {
+                return (
+                    <div>
+                        <span>{row.getValue('comment')}</span>
+                    </div>
                 );
             },
         },
@@ -200,21 +208,14 @@ const index = ({ agendas = [] }: Props) => {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Agenda" />
             <div className="w-full p-4">
-                <div>
-                    <Button asChild>
-                        <Link href={route('admin.agenda.create')}>
-                            Upload Agenda <Plus />
-                        </Link>
-                    </Button>
-                </div>
-                {agenda.length === 0 && (
+                {feedbackList.length === 0 && (
                     <div className="text-muted-foreground flex h-100 items-center justify-center text-lg font-medium">No agendas found.</div>
                 )}
-                {agenda.length > 0 && (
+                {feedbackList.length > 0 && (
                     <>
                         <div className="flex items-center py-4">
                             <Input
-                                placeholder="Search by agenda..."
+                                placeholder="Search by Name or Rating..."
                                 value={table.getState().globalFilter ?? ''}
                                 onChange={(event) => table.setGlobalFilter(event.target.value)}
                                 className="max-w-sm"

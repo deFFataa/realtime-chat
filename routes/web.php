@@ -4,12 +4,14 @@ use App\Models\Post;
 use App\Models\User;
 use Inertia\Inertia;
 use App\Models\Agenda;
+use App\Models\Feedback;
 use App\Models\Scheduler;
 use App\Events\TotalPosts;
 use App\Events\TotalUsers;
 use App\Models\MinutesOfMeeting;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\SchedulerController;
 
 Route::get('/', function () {
@@ -42,6 +44,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'schedule' => Scheduler::all(),
             'agenda' => Agenda::count(),
             'minutesOfMeeting' => MinutesOfMeeting::count(),
+            'feedbacks' => Feedback::with('user')->get(),
+            'rating_today' => Feedback::whereDate('created_at', today())->average('rating'),
+            'overall_rating' => Feedback::average('rating'),
         ]);
     })->name('admin.dashboard');
 });
@@ -49,6 +54,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('attendance/{scheduler}/confirm/{user}', [SchedulerController::class, 'confirmViaSignedUrl'])
     ->name('admin.schedules.confirm.signed')
     ->middleware('signed');
+
+Route::post('feedback/{user_id}', [FeedbackController::class, 'store'])
+    ->name('feedback.store');
 
 
 require __DIR__ . '/settings.php';
@@ -60,3 +68,4 @@ require __DIR__ . '/admin_users.php';
 require __DIR__ . '/scheduler.php';
 require __DIR__ . '/agenda.php';
 require __DIR__ . '/minutes_of_meeting.php';
+require __DIR__ . '/feedback.php';
