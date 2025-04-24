@@ -1,11 +1,12 @@
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 
 import AppearanceTabs from '@/components/appearance-tabs';
 import HeadingSmall from '@/components/heading-small';
-import { type BreadcrumbItem } from '@/types';
+import { SharedData, type BreadcrumbItem } from '@/types';
 
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
+import AppHeaderLayout from '@/layouts/app/app-header-layout';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -15,16 +16,34 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Appearance() {
-    return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Appearance settings" />
+    const { auth } = usePage<SharedData>().props;
+    const userRole = auth.user.role === 'user';
 
-            <SettingsLayout>
-                <div className="space-y-6">
-                    <HeadingSmall title="Appearance settings" description="Update your account's appearance settings" />
-                    <AppearanceTabs />
-                </div>
-            </SettingsLayout>
-        </AppLayout>
-    );
+    if (userRole) {
+        return (
+            <AppHeaderLayout breadcrumbs={breadcrumbs}>
+                <Head title="Appearance settings" />
+
+                <SettingsLayout>
+                    <div className="space-y-6">
+                        <HeadingSmall title="Appearance settings" description="Update your account's appearance settings" />
+                        <AppearanceTabs />
+                    </div>
+                </SettingsLayout>
+            </AppHeaderLayout>
+        );
+    } else {
+        return (
+            <AppLayout breadcrumbs={breadcrumbs}>
+                <Head title="Appearance settings" />
+
+                <SettingsLayout>
+                    <div className="space-y-6">
+                        <HeadingSmall title="Appearance settings" description="Update your account's appearance settings" />
+                        <AppearanceTabs />
+                    </div>
+                </SettingsLayout>
+            </AppLayout>
+        );
+    }
 }

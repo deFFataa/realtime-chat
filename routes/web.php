@@ -44,7 +44,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'schedule' => Scheduler::all(),
             'agenda' => Agenda::count(),
             'minutesOfMeeting' => MinutesOfMeeting::count(),
-            'feedbacks' => Feedback::with('user')->get(),
+            'feedbacks' => Feedback::with('user')->latest()->get(),
             'rating_today' => Feedback::whereDate('created_at', today())->average('rating'),
             'overall_rating' => Feedback::average('rating'),
         ]);

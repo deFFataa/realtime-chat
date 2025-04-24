@@ -1,4 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
+import AppHeaderLayout from '@/layouts/app/app-header-layout';
 import ChatSidebarLayout from '@/layouts/chat/chat-sidebar-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Props } from '@/types/UserTypes';
@@ -15,7 +16,7 @@ export default function Chat({ users, groups }: Props) {
     ];
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppHeaderLayout breadcrumbs={breadcrumbs}>
             <Head title="Chat" />
             <ChatSidebarLayout users={users} groups={groups}>
                 <div className="grid h-[calc(100vh-100px)] place-items-center">
@@ -26,6 +27,6 @@ export default function Chat({ users, groups }: Props) {
                     </div>
                 </div>
             </ChatSidebarLayout>
-        </AppLayout>
+        </AppHeaderLayout>
     );
 }

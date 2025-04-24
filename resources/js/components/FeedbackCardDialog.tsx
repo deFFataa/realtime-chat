@@ -18,8 +18,6 @@ const FeedbackCardDialog = ({ user_id }: Props) => {
 
     const popupThankYou = (usePage() as any).props.flash.popupThankyou;
 
-    console.log(popupThankYou);
-
     const [openDialog, setOpenDialog] = useState(false);
     const [openDialog2, setOpenDialog2] = useState(false);
 
@@ -52,7 +50,7 @@ const FeedbackCardDialog = ({ user_id }: Props) => {
             <Dialog open={openDialog} onOpenChange={setOpenDialog}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader className="mx-auto">
-                        <DialogTitle>Your Feedback Matters! {data.rating}</DialogTitle>
+                        <DialogTitle>Your Feedback Matters!</DialogTitle>
                         <DialogDescription>How satisfied are you with eCollab?</DialogDescription>
                     </DialogHeader>
                     <form id="submitFeedback" onSubmit={handleSubmit}>
@@ -76,6 +74,12 @@ const FeedbackCardDialog = ({ user_id }: Props) => {
                                 placeholder="Leave a message if you want!"
                                 value={data.comment}
                                 onChange={(e) => setData('comment', e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        handleSubmit(e as any);
+                                    }
+                                }}
                             />
                         </div>
                     </form>

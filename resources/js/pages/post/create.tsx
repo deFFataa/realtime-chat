@@ -2,6 +2,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import TextSection from './create_include/TextSection';
+import AppHeaderLayout from '@/layouts/app/app-header-layout';
+import { Head, useForm } from '@inertiajs/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -11,8 +13,15 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const create = () => {
+
+    const {data, setData, post, processing, errors} = useForm({
+        title: '',
+        content: '',
+    })
+
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppHeaderLayout breadcrumbs={breadcrumbs}>
+            <Head title="Create Post" />
             <section className="grid grid-cols-1 p-6">
                 <h1 className="font-bold">Create Post</h1>
                 <Tabs defaultValue="text" className="w-full">
@@ -34,7 +43,10 @@ const create = () => {
                     <TabsContent value="link">Links</TabsContent>
                 </Tabs>
             </section>
-        </AppLayout>
+            <section>
+
+            </section>
+        </AppHeaderLayout>
     );
 };
 

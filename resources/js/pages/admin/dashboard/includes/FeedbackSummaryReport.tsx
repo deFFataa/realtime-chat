@@ -29,7 +29,7 @@ const FeedbackSummaryReport = ({ feedbacks, rating_today, overall_rating }: Prop
                         </PopoverContent>
                     </Popover>
                 </div>
-                <div className="mt-5">
+                <div className="mt-5 mb-2">
                     <div className="flex justify-between">
                         <div className="flex items-center gap-2">
                             <h2 className="text-sm font-medium">Today's Rating:</h2>
@@ -41,38 +41,40 @@ const FeedbackSummaryReport = ({ feedbacks, rating_today, overall_rating }: Prop
                         <div className="flex items-center gap-2">
                             <h2 className="text-sm font-medium">Overall Rating:</h2>
                             <div className="inline-flex items-center">
-                                <h2 className="text-sm">{overall_rating}</h2>
+                                {/* <h2 className="text-sm">{overall_rating.toFixed(2)}</h2> */}
                                 <Star className="fill-yellow-300" color="" size={15} />
                             </div>
                         </div>
                     </div>
                 </div>
-                {feedbacks?.map((feedback) => (
-                    <div key={feedback.id} className="mt-3 flex justify-between pb-4">
-                        <div className="flex items-center gap-2">
-                            <Avatar className="self-start">
-                                <AvatarFallback>{getInitials(feedback.user.name)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col">
-                                <div className="inline-flex items-center">
-                                    <h2 className="mr-2 text-sm font-medium">{feedback.user.name}</h2>
-                                    {Array.from({ length: 5 }).map((_, index) => (
-                                        <Star
-                                            key={index}
-                                            className={index < feedback.rating ? 'fill-yellow-300' : 'fill-gray-300'}
-                                            color=""
-                                            size={15}
-                                        />
-                                    ))}
+                <div className='max-h-[330px] overflow-auto'>
+                    {feedbacks?.map((feedback) => (
+                        <div key={feedback.id} className="mt-3 flex justify-between pb-4">
+                            <div className="flex items-center gap-2">
+                                <Avatar className="self-start">
+                                    <AvatarFallback>{getInitials(feedback.user.name)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex flex-col">
+                                    <div className="inline-flex items-center">
+                                        <h2 className="mr-2 text-sm font-medium">{feedback.user.name}</h2>
+                                        {Array.from({ length: 5 }).map((_, index) => (
+                                            <Star
+                                                key={index}
+                                                className={index < feedback.rating ? 'fill-yellow-300' : 'fill-gray-300'}
+                                                color=""
+                                                size={15}
+                                            />
+                                        ))}
+                                    </div>
+                                    <div className="bg-primary mt-1 w-fit rounded-tr rounded-b px-2 py-1 text-sm text-white">{feedback.comment}</div>
                                 </div>
-                                <div className="bg-primary mt-1 w-fit rounded-tr rounded-b px-2 py-1 text-sm text-white">{feedback.comment}</div>
+                            </div>
+                            <div className="self-start text-sm font-medium">
+                                {formatDistanceToNow(new Date(feedback.created_at), { addSuffix: true })}
                             </div>
                         </div>
-                        <div className="self-start text-sm font-medium">
-                            {formatDistanceToNow(new Date(feedback.created_at), { addSuffix: true })}
-                        </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
         </div>
     );

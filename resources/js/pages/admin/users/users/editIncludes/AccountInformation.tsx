@@ -33,8 +33,8 @@ const AccountInformation = ({ user }: Props) => {
             },
             onError: () => {
                 toast.error('Failed to reset password! Please try again.');
-            }
-        })
+            },
+        });
     };
 
     return (
@@ -60,9 +60,7 @@ const AccountInformation = ({ user }: Props) => {
                             <DialogContent className="sm:max-w-[425px]">
                                 <DialogHeader>
                                     <DialogTitle className="text-center">Reset Password</DialogTitle>
-                                    <DialogDescription className="">
-                                        Are you sure you want to reset the password of this account?
-                                    </DialogDescription>
+                                    <DialogDescription className="">Are you sure you want to reset the password of this account?</DialogDescription>
                                 </DialogHeader>
                                 <DialogFooter className="text-center">
                                     <Button form="resetPassword" disabled={processing}>
@@ -80,7 +78,16 @@ const AccountInformation = ({ user }: Props) => {
                         </Dialog>
                     </div>
 
-                    <Button>Save</Button>
+                    <Button disabled={processing}>
+                        {processing ? (
+                            <div className="flex items-center gap-2">
+                                <LoaderCircle className="animate-spin" />
+                                Saving..
+                            </div>
+                        ) : (
+                            'Save'
+                        )}
+                    </Button>
                 </div>
             </form>
             <form onSubmit={resetPassword} id="resetPassword" className="hidden"></form>

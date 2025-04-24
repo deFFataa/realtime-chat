@@ -32,6 +32,7 @@ import { toast } from 'sonner';
 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import AppHeaderLayout from '@/layouts/app/app-header-layout';
 
 interface Props {
     messages?: any;
@@ -351,7 +352,7 @@ export default function Show({ messages, conversation, users, groups, conversati
     ];
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppHeaderLayout breadcrumbs={breadcrumbs}>
             <Head title="Chat" />
             <ChatSidebarLayout users={users_sidebar} groups={groups}>
                 <div className="h-full p-4">
@@ -695,6 +696,6 @@ export default function Show({ messages, conversation, users, groups, conversati
                     </form>
                 </div>
             </ChatSidebarLayout>
-        </AppLayout>
+        </AppHeaderLayout>
     );
 }

@@ -16,7 +16,7 @@ class FeedbackController extends Controller
     public function index()
     {
         return Inertia::render('admin/feedback/index', [
-            'feedbacks' => Feedback::with('user')->get()->map(function ($feedback) {
+            'feedbacks' => Feedback::with('user')->latest()->get()->map(function ($feedback) {
                 return [
                     'id' => $feedback->id,
                     'name' => $feedback->user->name,

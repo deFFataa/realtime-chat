@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,8 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { Feedback, Props } from '@/types/feedback';
-import { Head, Link, useForm } from '@inertiajs/react';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Head, useForm } from '@inertiajs/react';
 import {
     ColumnDef,
     ColumnFiltersState,
@@ -23,7 +22,8 @@ import {
     useReactTable,
     VisibilityState,
 } from '@tanstack/react-table';
-import { ArrowUpDown, ChevronDown, ChevronLeftIcon, ChevronRightIcon, LoaderCircle, Pencil, Star, Trash } from 'lucide-react';
+import { format, formatDistanceToNow } from 'date-fns';
+import { ArrowUpDown, ChevronDown, ChevronLeftIcon, ChevronRightIcon, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -97,7 +97,7 @@ const index = ({ feedbacks = [], rating_today, overall_rating }: Props) => {
             },
             cell: ({ row }) => {
                 return (
-                    <div className="font-medium flex gap-1">
+                    <div className="flex gap-1 font-medium">
                         <span>{row.getValue('rating')}</span>
                         <Star className="fill-yellow-300" color="" size={18} />
                     </div>
@@ -116,63 +116,81 @@ const index = ({ feedbacks = [], rating_today, overall_rating }: Props) => {
             },
         },
         {
-            accessorKey: 'id',
-            header: 'Action',
-            cell: ({ row }) => (
-                <div className="flex">
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger className="hover:bg-muted-foreground/30 rounded-full">
-                                <Link href={route('admin.agenda.edit', row.getValue('id'))}>
-                                    <Pencil className="p-[5px]" />
-                                </Link>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Edit</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <Dialog>
-                                <TooltipTrigger className="hover:bg-muted-foreground/30 rounded-full">
-                                    <DialogTrigger asChild type="button">
-                                        <Trash className="p-[5px]" />
-                                    </DialogTrigger>
-                                </TooltipTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>Are you sure you want to delete this file?</DialogTitle>
-                                        <DialogDescription>
-                                            All of the data that is associated with this file will be deleted. This action cannot be undone. Are you
-                                            sure you want to permanently delete this file?
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <DialogFooter>
-                                        <form onSubmit={(e) => handleDelete(row.getValue('id'), e)}>
-                                            <Button variant={'destructive'} disabled={processing}>
-                                                {processing ? (
-                                                    <div className="flex items-center gap-1">
-                                                        <LoaderCircle className="h-4 w-4 animate-spin" />
-                                                        Deleting...
-                                                    </div>
-                                                ) : (
-                                                    'Confirm'
-                                                )}
-                                            </Button>
-                                        </form>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
-
-                            <TooltipContent>
-                                <p>Delete</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                </div>
-            ),
+            accessorKey: 'created_at',
+            header: ({ column }) => {
+                return (
+                    <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                        Created At
+                        <ArrowUpDown />
+                    </Button>
+                );
+            },
+            cell: ({ row }) => {
+                return (
+                    <div>
+                        <span>{format(new Date(row.getValue('created_at')), 'MMM dd, yyyy - hh:mm a')}</span>
+                    </div>
+                );
+            },
         },
+        // {
+        //     accessorKey: 'id',
+        //     header: 'Action',
+        //     cell: ({ row }) => (
+        //         <div className="flex">
+        //             <TooltipProvider>
+        //                 <Tooltip>
+        //                     <TooltipTrigger className="hover:bg-muted-foreground/30 rounded-full">
+        //                         <Link href={route('admin.agenda.edit', row.getValue('id'))}>
+        //                             <Pencil className="p-[5px]" />
+        //                         </Link>
+        //                     </TooltipTrigger>
+        //                     <TooltipContent>
+        //                         <p>Edit</p>
+        //                     </TooltipContent>
+        //                 </Tooltip>
+        //             </TooltipProvider>
+        //             <TooltipProvider>
+        //                 <Tooltip>
+        //                     <Dialog>
+        //                         <TooltipTrigger className="hover:bg-muted-foreground/30 rounded-full">
+        //                             <DialogTrigger asChild type="button">
+        //                                 <Trash className="p-[5px]" />
+        //                             </DialogTrigger>
+        //                         </TooltipTrigger>
+        //                         <DialogContent>
+        //                             <DialogHeader>
+        //                                 <DialogTitle>Are you sure you want to delete this file?</DialogTitle>
+        //                                 <DialogDescription>
+        //                                     All of the data that is associated with this file will be deleted. This action cannot be undone. Are you
+        //                                     sure you want to permanently delete this file?
+        //                                 </DialogDescription>
+        //                             </DialogHeader>
+        //                             <DialogFooter>
+        //                                 <form onSubmit={(e) => handleDelete(row.getValue('id'), e)}>
+        //                                     <Button variant={'destructive'} disabled={processing}>
+        //                                         {processing ? (
+        //                                             <div className="flex items-center gap-1">
+        //                                                 <LoaderCircle className="h-4 w-4 animate-spin" />
+        //                                                 Deleting...
+        //                                             </div>
+        //                                         ) : (
+        //                                             'Confirm'
+        //                                         )}
+        //                                     </Button>
+        //                                 </form>
+        //                             </DialogFooter>
+        //                         </DialogContent>
+        //                     </Dialog>
+
+        //                     <TooltipContent>
+        //                         <p>Delete</p>
+        //                     </TooltipContent>
+        //                 </Tooltip>
+        //             </TooltipProvider>
+        //         </div>
+        //     ),
+        // },
     ];
 
     const [sorting, setSorting] = useState<SortingState>([]);
@@ -215,7 +233,7 @@ const index = ({ feedbacks = [], rating_today, overall_rating }: Props) => {
                     <>
                         <div className="flex items-center py-4">
                             <Input
-                                placeholder="Search by Name or Rating..."
+                                placeholder="Search by name or comment..."
                                 value={table.getState().globalFilter ?? ''}
                                 onChange={(event) => table.setGlobalFilter(event.target.value)}
                                 className="max-w-sm"

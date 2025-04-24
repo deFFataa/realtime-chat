@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import ChatMessage from '@/components/ui/ChatMessage';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import AppHeaderLayout from '@/layouts/app/app-header-layout';
 import ChatSidebarLayout from '@/layouts/chat/chat-sidebar-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
@@ -221,7 +222,7 @@ export default function GlobalChat({ messages = [], users = [], groups }: Props)
     }, [page, hasMore, isLoading]);
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppHeaderLayout breadcrumbs={breadcrumbs}>
             <Head title="Chat" />
             <ChatSidebarLayout users={users} groups={groups}>
                 <div className="h-full p-4">
@@ -285,6 +286,6 @@ export default function GlobalChat({ messages = [], users = [], groups }: Props)
                     </form>
                 </div>
             </ChatSidebarLayout>
-        </AppLayout>
+        </AppHeaderLayout>
     );
 }

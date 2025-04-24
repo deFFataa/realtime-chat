@@ -1,4 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
+import AppHeaderLayout from '@/layouts/app/app-header-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import Echo from 'laravel-echo';
@@ -44,9 +45,9 @@ export default function Dashboard({ users_count, post_count }: Props) {
     }, []);
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppHeaderLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
             user Here
-        </AppLayout>
+        </AppHeaderLayout>
     );
 }

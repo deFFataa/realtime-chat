@@ -1,4 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
+import AppHeaderLayout from '@/layouts/app/app-header-layout';
 import { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -10,9 +11,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const index = () => {
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppHeaderLayout breadcrumbs={breadcrumbs}>
             <div className="p-6">All Discussion board will be posted here</div>
-        </AppLayout>
+        </AppHeaderLayout>
     );
 };
 

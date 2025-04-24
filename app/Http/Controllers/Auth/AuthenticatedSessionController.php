@@ -6,6 +6,7 @@ use App\Events\NewUser;
 use App\Events\TotalActiveUsers;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\Feedback;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -54,13 +55,20 @@ class AuthenticatedSessionController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         $userId = Auth::id();
+    
         Auth::user()->update(['is_loggedin' => false]);
         broadcast(new TotalActiveUsers());
         Auth::guard('web')->logout();
-
+    
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
-        return redirect('/login')->with('user_id', $userId);
+    
+        $hasRatedToday = Feedback::where('user_id', $userId)->whereDate('created_at', today())->exists();
+    
+        if (!$hasRatedToday) {
+            return redirect('/login')->with('user_id', $userId);
+        }
+    
+        return redirect('/login');
     }
 }

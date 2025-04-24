@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import ChatMessage from '@/components/ui/ChatMessage';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import AppHeaderLayout from '@/layouts/app/app-header-layout';
 import ChatSidebarLayout from '@/layouts/chat/chat-sidebar-layout';
 import { ProperName } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
@@ -231,7 +232,7 @@ export default function Show({ messages, user, users, groups }: Props) {
     ];
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppHeaderLayout breadcrumbs={breadcrumbs}>
             <Head title="Chat" />
             <ChatSidebarLayout users={users} groups={groups}>
                 <div className="h-full p-4">
@@ -297,6 +298,6 @@ export default function Show({ messages, user, users, groups }: Props) {
                     </form>
                 </div>
             </ChatSidebarLayout>
-        </AppLayout>
+        </AppHeaderLayout>
     );
 }
