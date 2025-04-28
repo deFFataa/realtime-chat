@@ -2,46 +2,247 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { useInitials } from '@/hooks/use-initials';
 import { SharedData } from '@/types';
 import { useForm, usePage } from '@inertiajs/react';
 import { AvatarImage } from '@radix-ui/react-avatar';
 import { Dot, LoaderCircle } from 'lucide-react';
+
+import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
+import { LexicalComposer } from '@lexical/react/LexicalComposer';
+import { ContentEditable } from '@lexical/react/LexicalContentEditable';
+import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
+import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
+import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
+import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
+import {
+    $getRoot,
+    $isTextNode,
+    DOMConversionMap,
+    DOMExportOutput,
+    DOMExportOutputMap,
+    isHTMLElement,
+    Klass,
+    LexicalEditor,
+    LexicalNode,
+    ParagraphNode,
+    TextNode,
+} from 'lexical';
+
+import InputError from '@/components/input-error';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import ExampleTheme from '../exampleTheme';
+import ToolbarPlugin from '../plugins/ToolbarPlugin';
+import { parseAllowedColor, parseAllowedFontSize } from '../styleConfig';
+
+import { $generateHtmlFromNodes } from '@lexical/html';
+
+const placeholder = 'Enter some rich text...';
+
+const removeStylesExportDOM = (editor: LexicalEditor, node: LexicalNode): DOMExportOutput => {
+    const output = node.exportDOM(editor);
+    if (output && isHTMLElement(output.element)) {
+        const element = output.element as HTMLElement; // 👉 CAST here
+
+        // Capture text-align first
+        const textAlign = element.style.textAlign;
+
+        // Clean all style/class/dir but retain text-align manually
+        for (const el of [element, ...element.querySelectorAll('[style],[class],[dir="ltr"]')]) {
+            const htmlEl = el as HTMLElement; // 👉 CAST here
+            const hasTextAlign = htmlEl.style.textAlign;
+
+            el.removeAttribute('class');
+            el.removeAttribute('style');
+            if (el.getAttribute('dir') === 'ltr') {
+                el.removeAttribute('dir');
+            }
+
+            if (hasTextAlign) {
+                htmlEl.style.textAlign = hasTextAlign;
+            }
+        }
+
+        if (textAlign) {
+            element.style.textAlign = textAlign;
+        }
+    }
+    return output;
+};
+
+const exportMap: DOMExportOutputMap = new Map<Klass<LexicalNode>, (editor: LexicalEditor, target: LexicalNode) => DOMExportOutput>([
+    [ParagraphNode, removeStylesExportDOM],
+    [TextNode, removeStylesExportDOM],
+]);
+
+const getExtraStyles = (element: HTMLElement): string => {
+    let extraStyles = '';
+    const fontSize = parseAllowedFontSize(element.style.fontSize);
+    const backgroundColor = parseAllowedColor(element.style.backgroundColor);
+    const color = parseAllowedColor(element.style.color);
+    if (fontSize !== '' && fontSize !== '15px') {
+        extraStyles += `font-size: ${fontSize};`;
+    }
+    if (backgroundColor !== '' && backgroundColor !== 'rgb(255, 255, 255)') {
+        extraStyles += `background-color: ${backgroundColor};`;
+    }
+    if (color !== '' && color !== 'rgb(0, 0, 0)') {
+        extraStyles += `color: ${color};`;
+    }
+    return extraStyles;
+};
+
+const constructImportMap = (): DOMConversionMap => {
+    const importMap: DOMConversionMap = {};
+
+    // Wrap all TextNode importers with a function that also imports
+    // the custom styles implemented by the playground
+    for (const [tag, fn] of Object.entries(TextNode.importDOM() || {})) {
+        importMap[tag] = (importNode) => {
+            const importer = fn(importNode);
+            if (!importer) {
+                return null;
+            }
+            return {
+                ...importer,
+                conversion: (element) => {
+                    const output = importer.conversion(element);
+                    if (output === null || output.forChild === undefined || output.after !== undefined || output.node !== null) {
+                        return output;
+                    }
+                    const extraStyles = getExtraStyles(element);
+                    if (extraStyles) {
+                        const { forChild } = output;
+                        return {
+                            ...output,
+                            forChild: (child, parent) => {
+                                const textNode = forChild(child, parent);
+                                if ($isTextNode(textNode)) {
+                                    textNode.setStyle(textNode.getStyle() + extraStyles);
+                                }
+                                return textNode;
+                            },
+                        };
+                    }
+                    return output;
+                },
+            };
+        };
+    }
+
+    return importMap;
+};
+
+const editorConfig = {
+    html: {
+        export: exportMap,
+        import: constructImportMap(),
+    },
+    namespace: 'React.js Demo',
+    nodes: [ParagraphNode, TextNode],
+    onError(error: Error) {
+        throw error;
+    },
+    theme: ExampleTheme,
+};
 const TextSection = () => {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, reset } = useForm({
         title: '',
-        content: '',
+        body: '' ,
     });
 
-    const {auth} = usePage<SharedData>().props
+    console.log(usePage());
+    
+
+    const { auth } = usePage<SharedData>().props;
 
     const getInitials = useInitials();
 
+    const [editor, setEditor] = useState<LexicalEditor | null>(null);
+
+    useEffect(() => {
+        if (!editor) return;
+
+        return editor.registerUpdateListener(({ editorState }) => {
+            editorState.read(() => {
+                const html = $generateHtmlFromNodes(editor, null);
+                setData('body', html);
+            });
+        });
+    }, [editor, setData]);
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        post(route('discussion-board.store'), {
+            onSuccess: () => {
+                reset();
+                if (editor) {
+                    editor.update(() => {
+                        const root = $getRoot();
+                        root.clear();
+                    });
+                }
+            },
+            onFinish: () => {
+                toast.success('Post created successfully!');
+            },
+        });
+    };
+
     return (
         <div className="grid grid-cols-2">
-            <form className="grid w-full max-w-lg grid-cols-1 gap-2">
+            <form onSubmit={handleSubmit} className="grid w-full max-w-lg grid-cols-1 gap-2">
+                {/* Title input remains the same */}
                 <div className="mt-3 grid w-full max-w-lg items-center gap-1.5">
-                    <Label htmlFor="title">Title</Label>
+                    <Label htmlFor="title">
+                        Title <span className="text-muted-foreground">(optional)</span>
+                    </Label>
                     <Input
-                        type="title"
+                        type="text"
                         value={data.title}
-                        onChange={(e) => setData('title', e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setData('title', e.target.value)}
                         id="title"
-                        placeholder="Title of your discussion"
                     />
+                    <InputError message={errors.title} className="mt-2 text-sm" />
                 </div>
+
                 <div className="mt-3 grid w-full max-w-lg items-center gap-1.5">
                     <Label htmlFor="body">Body</Label>
-                    <Textarea
-                        id="body"
-                        placeholder="Tell us about your discussion"
-                        value={data.content}
-                        onChange={(e) => setData('content', e.target.value)}
-                        className="max-h-[400px] break-words break-all whitespace-pre-wrap"
-                    />
+
+                    <LexicalComposer initialConfig={editorConfig}>
+                        <div className="rounded-md border">
+                            <ToolbarPlugin />
+
+                            <div className="editor-inner">
+                                <RichTextPlugin
+                                    contentEditable={
+                                        <ContentEditable
+                                            className="editor-input"
+                                            aria-placeholder={placeholder}
+                                            placeholder={<div className="editor-placeholder">{placeholder}</div>}
+                                        />
+                                    }
+                                    ErrorBoundary={LexicalErrorBoundary}
+                                />
+                                <HistoryPlugin />
+                                <AutoFocusPlugin />
+                                <OnChangePlugin
+                                    onChange={(editorState, editor) => {
+                                        editorState.read(() => {
+                                            const html = $generateHtmlFromNodes(editor, null);
+
+                                            setData('body', html);
+                                        });
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </LexicalComposer>
+                    <InputError message={errors.body} className="mt-2 text-sm" />
                 </div>
-                <div className='flex justify-end'>
+
+                <div className="flex justify-end">
                     <Button disabled={processing}>
                         {processing ? (
                             <div className="flex items-center gap-2">
@@ -69,10 +270,11 @@ const TextSection = () => {
 
                 <div className="mt-1">
                     <h1 className="font-medium">{data.title}</h1>
-                    <p className="break-words break-all whitespace-pre-wrap">{data.content}</p>
+                    <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: data.body }} />
                 </div>
             </section>
         </div>
     );
 };
+
 export default TextSection;

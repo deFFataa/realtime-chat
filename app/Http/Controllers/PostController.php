@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StorePostRequest;
@@ -36,9 +37,22 @@ class PostController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StorePostRequest $request)
+    public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'title' => ['nullable', 'min:1', 'string'],
+            'body' => ['required', 'min:1']
+        ]);
+        Post::create($validated);
+        // try {
+            
+        // } catch (\Throwable $th) {
+        //     echo 'Error:' . $th;
+        //     return;
+        // }
+
+        // return redirect()->back();
+
     }
 
     /**
