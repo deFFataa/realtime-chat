@@ -69,3 +69,4 @@ require __DIR__ . '/scheduler.php';
 require __DIR__ . '/agenda.php';
 require __DIR__ . '/minutes_of_meeting.php';
 require __DIR__ . '/feedback.php';
+require __DIR__ . '/comments.php';

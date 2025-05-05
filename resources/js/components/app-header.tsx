@@ -11,24 +11,24 @@ import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { Bell, BookOpen, Folder, LayoutGrid, Mail, Megaphone, Menu, Plus, Search } from 'lucide-react';
+import { Bell, BookOpen, Folder, Home, LayoutGrid, Mail, Megaphone, Menu, Plus, Search } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
 
 const mainNavItems: NavItem[] = [
+    // {
+    //     title: 'Dashboard',
+    //     href: '/dashboard',
+    //     icon: LayoutGrid,
+    // },
     {
-        title: 'Dashboard',
-        href: '/dashboard',
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Discussion Board',
-        href: '/discussion-board',
-        icon: Megaphone,
+        title: 'Home',
+        href: '/home',
+        icon: Home,
     },
     {
         title: 'Create Post',
-        href: '/discussion-board/create',
+        href: '/post/create',
         icon: Plus,
     },
 
@@ -53,7 +53,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const { auth } = page.props;
     const getInitials = useInitials();
     return (
-        <>
+        <div className='sticky top-0 z-50 bg-background'>
             <div className="border-sidebar-border/80 border-b">
                 <div className="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
                     {/* Mobile Menu */}
@@ -98,7 +98,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                         </Sheet>
                     </div>
 
-                    <Link href="/dashboard" prefetch className="flex items-center space-x-2">
+                    <Link href="/home" prefetch className="flex items-center space-x-2">
                         <AppLogo />
                     </Link>
 
@@ -185,6 +185,6 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                     </div>
                 </div>
             )}
-        </>
+        </div>
     );
 }

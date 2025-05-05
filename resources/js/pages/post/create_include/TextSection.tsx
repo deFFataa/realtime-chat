@@ -5,16 +5,16 @@ import { Label } from '@/components/ui/label';
 import { useInitials } from '@/hooks/use-initials';
 import { SharedData } from '@/types';
 import { useForm, usePage } from '@inertiajs/react';
-import { AvatarImage } from '@radix-ui/react-avatar';
-import { Dot, LoaderCircle } from 'lucide-react';
-
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
+import { AutoLinkPlugin } from '@lexical/react/LexicalAutoLinkPlugin';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
+import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
+import { AvatarImage } from '@radix-ui/react-avatar';
 import {
     $getRoot,
     $isTextNode,
@@ -28,17 +28,19 @@ import {
     ParagraphNode,
     TextNode,
 } from 'lexical';
+import { Dot, LoaderCircle } from 'lucide-react';
+import { URL_MATCHER } from './url-matcher'; // You'll define this next
 
 import InputError from '@/components/input-error';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import ExampleTheme from '../exampleTheme';
 import ToolbarPlugin from '../plugins/ToolbarPlugin';
 import { parseAllowedColor, parseAllowedFontSize } from '../styleConfig';
 
 import { $generateHtmlFromNodes } from '@lexical/html';
+import { AutoLinkNode, LinkNode } from '@lexical/link';
 
-const placeholder = 'Enter some rich text...';
+const placeholder = 'Tell something here...';
 
 const removeStylesExportDOM = (editor: LexicalEditor, node: LexicalNode): DOMExportOutput => {
     const output = node.exportDOM(editor);
@@ -140,22 +142,19 @@ const editorConfig = {
         import: constructImportMap(),
     },
     namespace: 'React.js Demo',
-    nodes: [ParagraphNode, TextNode],
+    nodes: [ParagraphNode, TextNode, LinkNode, AutoLinkNode],
     onError(error: Error) {
         throw error;
     },
-    theme: ExampleTheme,
 };
 const TextSection = () => {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        title: '',
-        body: '' ,
-    });
-
-    console.log(usePage());
-    
-
     const { auth } = usePage<SharedData>().props;
+
+    const { data, setData, post, processing, errors, reset } = useForm({
+        user_id: auth.user.id,
+        title: '',
+        body: '',
+    });
 
     const getInitials = useInitials();
 
@@ -184,11 +183,30 @@ const TextSection = () => {
                     });
                 }
             },
+
             onFinish: () => {
                 toast.success('Post created successfully!');
             },
+            onError: () => {
+                toast.error('Something went wrong. Please try again.');
+            },
         });
     };
+
+    const addTargetBlankToLinks = (htmlContent: string) => {
+        const div = document.createElement('div');
+        div.innerHTML = htmlContent;
+    
+        const links = div.querySelectorAll('a');
+        links.forEach(link => {
+            link.setAttribute('target', '_blank');
+            link.setAttribute('rel', 'noopener noreferrer');
+        });
+    
+        return div.innerHTML;
+    };
+
+    const modifiedBody = addTargetBlankToLinks(data.body);
 
     return (
         <div className="grid grid-cols-2">
@@ -227,11 +245,12 @@ const TextSection = () => {
                                 />
                                 <HistoryPlugin />
                                 <AutoFocusPlugin />
+                                <LinkPlugin />
+                                <AutoLinkPlugin matchers={[URL_MATCHER]} />
                                 <OnChangePlugin
                                     onChange={(editorState, editor) => {
                                         editorState.read(() => {
                                             const html = $generateHtmlFromNodes(editor, null);
-
                                             setData('body', html);
                                         });
                                     }}
@@ -239,11 +258,10 @@ const TextSection = () => {
                             </div>
                         </div>
                     </LexicalComposer>
-                    <InputError message={errors.body} className="mt-2 text-sm" />
                 </div>
 
                 <div className="flex justify-end">
-                    <Button disabled={processing}>
+                    <Button disabled={processing || data.body == '<p><br></p>'}>
                         {processing ? (
                             <div className="flex items-center gap-2">
                                 <LoaderCircle className="animate-spin" />
@@ -270,7 +288,7 @@ const TextSection = () => {
 
                 <div className="mt-1">
                     <h1 className="font-medium">{data.title}</h1>
-                    <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: data.body }} />
+                    <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: modifiedBody }} />
                 </div>
             </section>
         </div>

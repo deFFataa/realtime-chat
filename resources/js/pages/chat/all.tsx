@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button';
 import ChatMessage from '@/components/ui/ChatMessage';
 import { Textarea } from '@/components/ui/textarea';
-import AppLayout from '@/layouts/app-layout';
 import AppHeaderLayout from '@/layouts/app/app-header-layout';
 import ChatSidebarLayout from '@/layouts/chat/chat-sidebar-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -42,7 +41,7 @@ interface User {
 
 export default function GlobalChat({ messages = [], users = [], groups }: Props) {
     console.log(groups);
-    
+
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Chat',
@@ -224,68 +223,74 @@ export default function GlobalChat({ messages = [], users = [], groups }: Props)
     return (
         <AppHeaderLayout breadcrumbs={breadcrumbs}>
             <Head title="Chat" />
-            <ChatSidebarLayout users={users} groups={groups}>
-                <div className="h-full p-4">
-                    <h2 className="font-bold">Global Chat</h2>
-                    <form onSubmit={handleSubmit} className="grid h-full w-full place-items-center">
-                        <div className="mt-4 flex h-full w-full flex-col">
-                            <div ref={chatContainerRef} className="flex-1 overflow-auto rounded-md border p-5" style={{ maxHeight: availableHeight }}>
-                                {chats.length === 0 ? (
-                                    <div className="grid h-full place-items-center font-medium">👋 Say hi to everyone.</div>
-                                ) : (
-                                    <div className="flex flex-col-reverse gap-3">
-                                        {chats
-                                            ?.slice()
-                                            .reverse()
-                                            .map((chat: any) => (
-                                                <ChatMessage
-                                                    id={chat.id}
-                                                    name={chat.name ? chat.name : chat.user.name}
-                                                    key={chat.id}
-                                                    message={chat?.message}
-                                                    variant={chat.user_id === auth_user.user?.id ? 'sender' : 'receiver'}
-                                                    sent_date={new Date(chat.created_at).toLocaleDateString('en-US', {
-                                                        month: 'short',
-                                                        day: 'numeric',
-                                                        year: 'numeric',
-                                                    })}
-                                                    joinedAt={new Date(
-                                                        chat.user_created ? chat.user_created : chat.user.created_at,
-                                                    ).toLocaleDateString('en-US', {
-                                                        month: 'short',
-                                                        day: 'numeric',
-                                                        year: 'numeric',
-                                                    })}
-                                                />
-                                            ))}
-                                    </div>
-                                )}
-                            </div>
-                            <div className="mt-2 flex items-center gap-2">
-                                <Textarea
-                                    name="message"
-                                    ref={chatInput}
-                                    className="scrollbar-hide h-full max-h-[70px] min-h-auto w-full flex-1 resize-none overflow-x-hidden overflow-y-auto break-words break-all"
-                                    onChange={(e) => setData('message', e.target.value)}
-                                    placeholder="Type your message here.."
-                                    value={data.message}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault();
-                                            handleSubmit(e as any);
-                                        }
-                                    }}
-                                    disabled={processing}
-                                />
+            <div className="mx-auto flex items-center px-4 md:max-w-7xl">
+                <ChatSidebarLayout users={users} groups={groups}>
+                    <div className="h-full p-4">
+                        <h2 className="font-bold">Global Chat</h2>
+                        <form onSubmit={handleSubmit} className="grid h-full w-full place-items-center">
+                            <div className="mt-4 flex h-full w-full flex-col">
+                                <div
+                                    ref={chatContainerRef}
+                                    className="flex-1 overflow-auto rounded-md border p-5"
+                                    style={{ maxHeight: availableHeight }}
+                                >
+                                    {chats.length === 0 ? (
+                                        <div className="grid h-full place-items-center font-medium">👋 Say hi to everyone.</div>
+                                    ) : (
+                                        <div className="flex flex-col-reverse gap-3">
+                                            {chats
+                                                ?.slice()
+                                                .reverse()
+                                                .map((chat: any) => (
+                                                    <ChatMessage
+                                                        id={chat.id}
+                                                        name={chat.name ? chat.name : chat.user.name}
+                                                        key={chat.id}
+                                                        message={chat?.message}
+                                                        variant={chat.user_id === auth_user.user?.id ? 'sender' : 'receiver'}
+                                                        sent_date={new Date(chat.created_at).toLocaleDateString('en-US', {
+                                                            month: 'short',
+                                                            day: 'numeric',
+                                                            year: 'numeric',
+                                                        })}
+                                                        joinedAt={new Date(
+                                                            chat.user_created ? chat.user_created : chat.user.created_at,
+                                                        ).toLocaleDateString('en-US', {
+                                                            month: 'short',
+                                                            day: 'numeric',
+                                                            year: 'numeric',
+                                                        })}
+                                                    />
+                                                ))}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="mt-2 flex items-center gap-2">
+                                    <Textarea
+                                        name="message"
+                                        ref={chatInput}
+                                        className="scrollbar-hide h-full max-h-[70px] min-h-auto w-full flex-1 resize-none overflow-x-hidden overflow-y-auto break-words break-all"
+                                        onChange={(e) => setData('message', e.target.value)}
+                                        placeholder="Type your message here.."
+                                        value={data.message}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                handleSubmit(e as any);
+                                            }
+                                        }}
+                                        disabled={processing}
+                                    />
 
-                                <Button disabled={data.message === '' || processing}>
-                                    {!processing ? <SendIcon /> : <CircleDashed className="h-4 w-4 animate-spin" />}
-                                </Button>
+                                    <Button disabled={data.message === '' || processing}>
+                                        {!processing ? <SendIcon /> : <CircleDashed className="h-4 w-4 animate-spin" />}
+                                    </Button>
+                                </div>
                             </div>
-                        </div>
-                    </form>
-                </div>
-            </ChatSidebarLayout>
+                        </form>
+                    </div>
+                </ChatSidebarLayout>
+            </div>
         </AppHeaderLayout>
     );
 }

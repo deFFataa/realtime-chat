@@ -5,6 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  *
  */
+import { TOGGLE_LINK_COMMAND } from '@lexical/link';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { mergeRegister } from '@lexical/utils';
 import {
@@ -18,16 +19,13 @@ import {
     SELECTION_CHANGE_COMMAND,
     UNDO_COMMAND,
 } from 'lexical';
-import { AlignCenter, AlignJustify, AlignLeft, AlignRight, Bold, Italic, Redo, Strikethrough, Underline, Undo } from 'lucide-react';
+import { AlignCenter, AlignJustify, AlignLeft, AlignRight, Bold, Italic, Link, Redo, Strikethrough, Underline, Undo } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useDebouncedCallback } from 'use-debounce';
-
 const LowPriority = 1;
 
 function Divider() {
     return <div className="divider" />;
 }
-
 
 const ToolbarPlugin = () => {
     const [editor] = useLexicalComposerContext();
@@ -57,8 +55,8 @@ const ToolbarPlugin = () => {
                     $updateToolbar();
                 });
 
-                if(dirtyElements.size === 0 && dirtyLeaves.size === 0){
-                    return
+                if (dirtyElements.size === 0 && dirtyLeaves.size === 0) {
+                    return;
                 }
             }),
             editor.registerCommand(
@@ -99,7 +97,7 @@ const ToolbarPlugin = () => {
                 className="toolbar-item spaced"
                 aria-label="Undo"
             >
-                <Undo size={18}/>
+                <Undo size={18} />
             </button>
             <button
                 type="button"
@@ -110,7 +108,7 @@ const ToolbarPlugin = () => {
                 className="toolbar-item"
                 aria-label="Redo"
             >
-                <Redo size={18}/>
+                <Redo size={18} />
             </button>
             <Divider />
             <button
@@ -121,7 +119,7 @@ const ToolbarPlugin = () => {
                 className={'toolbar-item spaced ' + (isBold ? 'active' : '')}
                 aria-label="Format Bold"
             >
-                <Bold size={18}/>
+                <Bold size={18} />
             </button>
             <button
                 type="button"
@@ -131,7 +129,7 @@ const ToolbarPlugin = () => {
                 className={'toolbar-item spaced ' + (isItalic ? 'active' : '')}
                 aria-label="Format Italics"
             >
-                <Italic size={18}/>
+                <Italic size={18} />
             </button>
             <button
                 type="button"
@@ -141,7 +139,7 @@ const ToolbarPlugin = () => {
                 className={'toolbar-item spaced ' + (isUnderline ? 'active' : '')}
                 aria-label="Format Underline"
             >
-                <Underline size={18}/>
+                <Underline size={18} />
             </button>
             <button
                 type="button"
@@ -151,7 +149,7 @@ const ToolbarPlugin = () => {
                 className={'toolbar-item spaced ' + (isStrikethrough ? 'active' : '')}
                 aria-label="Format Strikethrough"
             >
-                <Strikethrough size={18}/>
+                <Strikethrough size={18} />
             </button>
             <Divider />
             <button
@@ -162,7 +160,7 @@ const ToolbarPlugin = () => {
                 className="toolbar-item spaced"
                 aria-label="Left Align"
             >
-                <AlignLeft size={18}/>
+                <AlignLeft size={18} />
             </button>
             <button
                 type="button"
@@ -172,7 +170,7 @@ const ToolbarPlugin = () => {
                 className="toolbar-item spaced"
                 aria-label="Center Align"
             >
-                <AlignCenter size={18}/>
+                <AlignCenter size={18} />
             </button>
             <button
                 type="button"
@@ -182,7 +180,7 @@ const ToolbarPlugin = () => {
                 className="toolbar-item spaced"
                 aria-label="Right Align"
             >
-                <AlignRight size={18}/>
+                <AlignRight size={18} />
             </button>
             <button
                 type="button"
@@ -192,10 +190,10 @@ const ToolbarPlugin = () => {
                 className="toolbar-item"
                 aria-label="Justify Align"
             >
-                <AlignJustify size={18}/>
+                <AlignJustify size={18} />
             </button>{' '}
         </div>
     );
-}
+};
 
-export default ToolbarPlugin
+export default ToolbarPlugin;

@@ -101,7 +101,7 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
     return (
         <div className="grid flex-1 grid-cols-3">
             <div className="flex max-h-screen flex-col overflow-auto border-r text-sm">
-                <div className="bg-background -500 sticky top-0 p-4">
+                <div className="bg-background -500 sticky top-0 py-4 px-2">
                     <div className="flex justify-between">
                         <h1 className="text-lg font-bold">Chats</h1>
                         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>

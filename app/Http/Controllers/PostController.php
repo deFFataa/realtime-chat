@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Comment;
 use App\Models\Post;
+use App\Models\PostLike;
+use App\Models\Scheduler;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -16,11 +20,14 @@ class PostController extends Controller
      */
     public function index()
     {
-        if(Auth::user()->role == 'admin') {
+        if (Auth::user()->role == 'admin') {
             abort(403);
         }
 
-        return Inertia::render("post/index");
+        return Inertia::render("post/index", [
+            'posts' => Post::with(['user', 'comments', 'post_likes'])->latest()->get(),
+            'upcoming_meetings' => Scheduler::where('date_of_meeting', '>', now())->take(3)->orderBy('date_of_meeting', 'asc')->get(),
+        ]);
     }
 
     /**
@@ -28,7 +35,7 @@ class PostController extends Controller
      */
     public function create()
     {
-        if(Auth::user()->role == 'admin') {
+        if (Auth::user()->role == 'admin') {
             abort(403);
         }
         return Inertia::render("post/create");
@@ -40,18 +47,20 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'user_id' => ['required'],
             'title' => ['nullable', 'min:1', 'string'],
             'body' => ['required', 'min:1']
         ]);
-        Post::create($validated);
-        // try {
-            
-        // } catch (\Throwable $th) {
-        //     echo 'Error:' . $th;
-        //     return;
-        // }
 
-        // return redirect()->back();
+        try {
+            Post::create($validated);
+
+        } catch (\Throwable $th) {
+            echo 'Error:' . $th;
+            return;
+        }
+
+        return redirect('/home');
 
     }
 
@@ -60,8 +69,24 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        //
+        $post->load(['user', 'post_likes']); // Load relations for the post
+    
+        // Get top-level comments (those without a parent) with their nested children and user
+        $topLevelComments = Comment::with(['user', 'children.user']) // load user for both parent and replies
+            ->where('post_id', $post->id)
+            ->whereNull('parent_id')
+            ->get();
+    
+        return Inertia::render("post/show", [
+            'post' => $post,
+            'upcoming_meetings' => Scheduler::where('date_of_meeting', '>', now())
+                ->take(3)
+                ->orderBy('date_of_meeting', 'asc')
+                ->get(),
+            'comments' => $topLevelComments, // ✅ Only top-level comments with nested replies
+        ]);
     }
+    
 
     /**
      * Show the form for editing the specified resource.
@@ -85,5 +110,46 @@ class PostController extends Controller
     public function destroy(Post $post)
     {
         //
+    }
+
+    public function comment(Request $request, Post $post)
+    {
+        $validated = $request->validate([
+            'user_id' => ['required'],
+            'post_id' => ['required'],
+            'comment' => ['required', 'min:1']
+        ]);
+
+        // dd($validated);
+
+        try {
+            Comment::create($validated);
+        } catch (\Throwable $th) {
+            echo 'Error:' . $th;
+            return;
+        }
+
+        return redirect()->back();
+    }
+
+    public function like(Request $request, Post $post){
+        $validated = $request->validate([
+            'user_id' => ['required'],
+            'post_id' => ['required'],
+        ]);
+
+        if (PostLike::where('user_id', $validated['user_id'])->where('post_id', $validated['post_id'])->exists()) {
+            PostLike::where('user_id', $validated['user_id'])->where('post_id', $validated['post_id'])->delete();
+            return redirect()->back();
+        }
+
+        try {
+            PostLike::create($validated);
+        } catch (\Throwable $th) {
+            echo 'Error:' . $th;
+            return;
+        }
+
+        return redirect()->back();
     }
 }

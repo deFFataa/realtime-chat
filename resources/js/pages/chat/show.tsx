@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button';
 import ChatMessage from '@/components/ui/ChatMessage';
 import { Textarea } from '@/components/ui/textarea';
-import AppLayout from '@/layouts/app-layout';
 import AppHeaderLayout from '@/layouts/app/app-header-layout';
 import ChatSidebarLayout from '@/layouts/chat/chat-sidebar-layout';
 import { ProperName } from '@/lib/utils';
@@ -234,70 +233,72 @@ export default function Show({ messages, user, users, groups }: Props) {
     return (
         <AppHeaderLayout breadcrumbs={breadcrumbs}>
             <Head title="Chat" />
-            <ChatSidebarLayout users={users} groups={groups}>
-                <div className="h-full p-4">
-                    <h2 className="font-bold">{ProperName(user.name)}</h2>
-                    <form onSubmit={handleSubmit} className="grid h-full w-full place-items-center">
-                        <div className="mt-4 flex h-full w-full flex-col">
-                            {chats.length === 0 && (
-                                <div
-                                    className="grid flex-1 place-items-center overflow-auto rounded-md border font-medium"
-                                    style={{ maxHeight: availableHeight }}
-                                >
-                                    👋 Say hi to {user.name}.
-                                </div>
-                            )}
-
-                            {chats.length > 0 && (
-                                <div
-                                    ref={chatContainerRef}
-                                    className="flex-1 overflow-auto rounded-md border p-5"
-                                    style={{ maxHeight: availableHeight }}
-                                >
-                                    <div className="flex flex-col gap-4">
-                                        {chats?.map((chat: any) => (
-                                            <ChatMessage
-                                                id={chat.id}
-                                                key={chat.id}
-                                                name={chat.name ? chat.name : chat.user?.name}
-                                                message={<span dangerouslySetInnerHTML={{ __html: chat.message }} />}
-                                                variant={chat.user_id === auth_user.user?.id ? 'sender' : 'receiver'}
-                                                sent_date={new Date(chat.created_at).toLocaleDateString('en-US', {
-                                                    month: 'short',
-                                                    day: 'numeric',
-                                                    year: 'numeric',
-                                                })}
-                                            />
-                                        ))}
+            <div className="mx-auto flex items-center px-4 md:max-w-7xl">
+                <ChatSidebarLayout users={users} groups={groups}>
+                    <div className="h-full p-4">
+                        <h2 className="font-bold">{ProperName(user.name)}</h2>
+                        <form onSubmit={handleSubmit} className="grid h-full w-full place-items-center">
+                            <div className="mt-4 flex h-full w-full flex-col">
+                                {chats.length === 0 && (
+                                    <div
+                                        className="grid flex-1 place-items-center overflow-auto rounded-md border font-medium"
+                                        style={{ maxHeight: availableHeight }}
+                                    >
+                                        👋 Say hi to {user.name}.
                                     </div>
+                                )}
+
+                                {chats.length > 0 && (
+                                    <div
+                                        ref={chatContainerRef}
+                                        className="flex-1 overflow-auto rounded-md border p-5"
+                                        style={{ maxHeight: availableHeight }}
+                                    >
+                                        <div className="flex flex-col gap-4">
+                                            {chats?.map((chat: any) => (
+                                                <ChatMessage
+                                                    id={chat.id}
+                                                    key={chat.id}
+                                                    name={chat.name ? chat.name : chat.user?.name}
+                                                    message={<span dangerouslySetInnerHTML={{ __html: chat.message }} />}
+                                                    variant={chat.user_id === auth_user.user?.id ? 'sender' : 'receiver'}
+                                                    sent_date={new Date(chat.created_at).toLocaleDateString('en-US', {
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        year: 'numeric',
+                                                    })}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="mt-2 flex gap-2">
+                                    <Textarea
+                                        name="message"
+                                        ref={chatInput}
+                                        className="h-full max-h-[100px] min-h-auto w-full flex-1 resize-none overflow-x-hidden break-words break-all whitespace-pre-wrap"
+                                        onChange={(e) => setData('message', e.target.value)}
+                                        placeholder="Type your message here.."
+                                        value={data.message}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                handleSubmit(e as any);
+                                            }
+                                        }}
+                                        disabled={processing}
+                                    />
+
+                                    <Button className="self-end" disabled={data.message === '' || processing}>
+                                        {!processing ? <SendIcon /> : <CircleDashed className="h-4 w-4 animate-spin" />}
+                                    </Button>
                                 </div>
-                            )}
-
-                            <div className="mt-2 flex gap-2">
-                                <Textarea
-                                    name="message"
-                                    ref={chatInput}
-                                    className="h-full max-h-[100px] min-h-auto w-full flex-1 resize-none overflow-x-hidden break-words break-all whitespace-pre-wrap"
-                                    onChange={(e) => setData('message', e.target.value)}
-                                    placeholder="Type your message here.."
-                                    value={data.message}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault();
-                                            handleSubmit(e as any);
-                                        }
-                                    }}
-                                    disabled={processing}
-                                />
-
-                                <Button className="self-end" disabled={data.message === '' || processing}>
-                                    {!processing ? <SendIcon /> : <CircleDashed className="h-4 w-4 animate-spin" />}
-                                </Button>
                             </div>
-                        </div>
-                    </form>
-                </div>
-            </ChatSidebarLayout>
+                        </form>
+                    </div>
+                </ChatSidebarLayout>
+            </div>
         </AppHeaderLayout>
     );
 }

@@ -655,3 +655,12 @@
   i.justify-align {
     background-image: url(icons/justify.svg);
   }
+  .editor-inner a {
+    text-decoration: underline;
+    color: #0066cc; /* You can customize the color as well */
+  }
+
+  .prose a {
+    text-decoration: underline;
+    color: #0066cc; /* Customize the color if you wish */
+  }

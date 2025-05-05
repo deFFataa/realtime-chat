@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Comment;
 use App\Http\Requests\StoreCommentRequest;
 use App\Http\Requests\UpdateCommentRequest;
+use Illuminate\Http\Request;
 
 class CommentController extends Controller
 {
@@ -61,6 +62,36 @@ class CommentController extends Controller
      */
     public function destroy(Comment $comment)
     {
-        //
+        try {
+            $comment->delete();
+        } catch (\Exception $e) {
+            echo $e->getMessage();
+            return;
+        }
+
+        return redirect()->back();
+    }
+
+    public function reply(Request $request, Comment $comment)
+    {
+        $request->validate([
+            'user_id' => ['required'],
+            'post_id' => ['required'],
+            'comment' => ['required', 'min:1']
+        ]);
+
+        try {
+            $comment->create([
+                'user_id' => $request->user_id,
+                'parent_id' => $request->post_id,
+                'comment' => $request->comment
+            ]);
+        } catch (\Throwable $th) {
+            echo 'Error:' . $th;
+            return;
+        }
+
+        return redirect()->back();
+
     }
 }
