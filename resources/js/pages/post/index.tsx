@@ -162,7 +162,7 @@ const index = ({ posts, upcoming_meetings }: Props) => {
                             </div>
                         </div>
                     </div>
-                    <div className="bg-background col-span-2 rounded-lg">
+                    <div className={`bg-background col-span-2 rounded-lg ${posts.length !== 0 && 'h-fit'}`}>
                         {posts.length === 0 ? (
                             <div className="grid h-full place-items-center">
                                 <div className="text-center">
@@ -176,7 +176,7 @@ const index = ({ posts, upcoming_meetings }: Props) => {
                         ) : (
                             posts.map((post) => {
                                 // console.log(post);
-                                
+
                                 return (
                                     <div key={post.id}>
                                         <PostCard
@@ -196,6 +196,23 @@ const index = ({ posts, upcoming_meetings }: Props) => {
                                     </div>
                                 );
                             })
+                        )}
+                        {posts.length !== 0 && (
+                            <div className="my-5 grid place-items-center">
+                                <div className="text-center">
+                                    <h3>You have reached the end.</h3>
+                                    <p className="text-muted-foreground text-sm">
+                                        Create a new post{' '}
+                                        <Link className="hover:text-primary underline" href={'/post/create'}>
+                                            here
+                                        </Link>
+                                        .
+                                    </p>
+                                    <div className="mt-2 flex items-center justify-center">
+                                        <AppLogo />
+                                    </div>
+                                </div>
+                            </div>
                         )}
                     </div>
                     <div className="bg-background rounded-lg p-4">

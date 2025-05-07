@@ -94,7 +94,7 @@ class PostController extends Controller
         if ($request->file('media_location')->isValid()) {
             $file = $request->file('media_location');
 
-            $slug = Str::slug(Auth::user()->name, '_');
+            $slug = Str::slug($validated['title'], '_');
             $extension = $file->getClientOriginalExtension();
             $baseFileName = $slug;
             $fileName = $baseFileName . '_' . time() . '.' . $extension;
@@ -190,7 +190,20 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        //
+        if ($post->media_location) {
+            $filePath = public_path('file_media/' . $post->media_location);
+            $imagePath = public_path('image_media/' . $post->media_location);
+
+            if (file_exists($filePath)) {
+            unlink($filePath);
+            } elseif (file_exists($imagePath)) {
+            unlink($imagePath);
+            }
+        }
+
+        $post->delete();
+
+        return redirect('/home');
     }
 
     public function comment(Request $request, Post $post)
