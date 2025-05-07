@@ -12,6 +12,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
+use Str;
 
 class PostController extends Controller
 {
@@ -23,16 +24,16 @@ class PostController extends Controller
         if (Auth::user()->role == 'admin') {
             abort(403);
         }
-    
+
         $posts = Post::with(['user', 'comments.children', 'post_likes'])->latest()->get();
-    
+
         // Add comment count including nested replies
         foreach ($posts as $post) {
             $topLevelComments = $post->comments->whereNull('parent_id');
             $flattened = $this->flattenComments($topLevelComments);
             $post->comments_count = $flattened->count();
         }
-    
+
         return Inertia::render("post/index", [
             'posts' => $posts,
             'upcoming_meetings' => Scheduler::where('date_of_meeting', '>', now())
@@ -75,6 +76,52 @@ class PostController extends Controller
 
     }
 
+    public function store_files(Request $request)
+    {
+        // dd($request->all());
+
+        $validated = $request->validate([
+            'user_id' => ['required'],
+            'title' => ['required', 'min:1', 'string'],
+            'body' => ['required', 'min:1'],
+            'media_location' => ['required', 'mimes:jpeg,jpg,png,pdf,doc,docx'],
+
+        ]);
+
+        $imageExt = ['jpeg', 'jpg', 'png'];
+        $fileExt = ['pdf', 'doc', 'docx'];
+
+        if ($request->file('media_location')->isValid()) {
+            $file = $request->file('media_location');
+
+            $slug = Str::slug(Auth::user()->name, '_');
+            $extension = $file->getClientOriginalExtension();
+            $baseFileName = $slug;
+            $fileName = $baseFileName . '_' . time() . '.' . $extension;
+
+            if(in_array($extension, $fileExt)) {
+                $file->move(public_path('file_media'), $fileName);
+            } else if(in_array($extension, $imageExt)) {
+                $file->move(public_path('image_media'), $fileName);
+            } else {
+                return abort(404);
+            }
+
+            $validated['media_location'] = $fileName;
+        }
+
+        try {
+            Post::create($validated);
+
+        } catch (\Throwable $th) {
+            echo 'Error:' . $th;
+            return;
+        }
+
+        return redirect('/home');
+
+    }
+
     /**
      * Display the specified resource.
      */
@@ -83,11 +130,11 @@ class PostController extends Controller
         $post->load(['user', 'post_likes']);
 
         $topLevelComments = Comment::with(['user', 'children'])
-        ->withCount('comment_likes')
-        ->where('post_id', $post->id)
-        ->whereNull('parent_id')
-        ->get();    
-    
+            ->withCount('comment_likes')
+            ->where('post_id', $post->id)
+            ->whereNull('parent_id')
+            ->get();
+
         $allComments = $this->flattenComments($topLevelComments);
         $commentsCount = $allComments->count();
 

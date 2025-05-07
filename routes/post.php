@@ -8,6 +8,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/home', [PostController::class,'index'])->name('discussion-board.index');
     Route::get('/post/create', [PostController::class,'create'])->name('discussion-board.create');
     Route::post('/home', [PostController::class,'store'])->name('discussion-board.store');
+    Route::post('/home/media', [PostController::class,'store_files'])->name('discussion-board.store-with-media');
     Route::get('/post/{post}', [PostController::class,'show'])->name('discussion-board.show');
 
     Route::post('/post/{post}/comment', [PostController::class,'comment'])->name('discussion-board.comment-post');

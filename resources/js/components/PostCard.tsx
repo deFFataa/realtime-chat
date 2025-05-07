@@ -3,7 +3,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useInitials } from '@/hooks/use-initials';
 import { Post } from '@/types/post';
 import { format, formatDistanceToNow } from 'date-fns';
-import { Forward, Heart, MessageCircle } from 'lucide-react';
+import { Download, FileUpIcon, Forward, Heart, MessageCircle } from 'lucide-react';
 
 import { Copy } from 'lucide-react';
 
@@ -57,68 +57,81 @@ const PostCard = ({ user: { name }, id, title = '', body, media_location, commen
         });
     };
 
+    const Wrapper = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+        return url.startsWith('/post') ? (
+            <div className={className}>{children}</div>
+        ) : (
+            <Link href={`/post/${id}`} className={className}>
+                {children}
+            </Link>
+        );
+    };
+
+    const wrapperProps = url.startsWith('/post') ? {} : { href: `/post/${id}` };
+
+    const imageExtensionName = ['jpeg', 'jpg', 'png'];
+    const fileExtensionName = ['pdf', 'doc', 'docx'];
+
+    const file_extension = media_location?.split('.').pop();
+
     return (
         <>
             <section className="hover:bg-accent/30 rounded p-4 duration-100 ease-in" key={id}>
-                {url.startsWith('/post') ? (
-                    <div>
-                        <div className="flex items-center">
-                            <Avatar className="mr-2">
-                                <AvatarImage src="" alt="@shadcn" />
-                                <AvatarFallback>{getInitials(name)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col">
-                                <div className="text-sm font-medium">{name}</div>
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <div className="text-muted-foreground w-fit cursor-pointer text-xs hover:underline">
-                                                {formatDistanceToNow(new Date(created_at), { includeSeconds: true })}
-                                            </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>{format(new Date(created_at), 'EEEE, MMM dd, yyyy - hh:mm a')}</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
+                <div>
+                    <Wrapper className="flex items-center">
+                        <Avatar className="mr-2">
+                            <AvatarImage src="" alt="@shadcn" />
+                            <AvatarFallback>{getInitials(name)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                            <div className="text-sm font-medium">{name}</div>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div className="text-muted-foreground w-fit cursor-pointer text-xs hover:underline">
+                                            {formatDistanceToNow(new Date(created_at), { includeSeconds: true })}
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>{format(new Date(created_at), 'EEEE, MMM dd, yyyy - hh:mm a')}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </div>
+                    </Wrapper>
+                    <div className="mt-1">
+                        <h1 className="font-medium" dangerouslySetInnerHTML={{ __html: title }} />
+                        <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: modifiedBody }} />
+                        {file_extension && imageExtensionName.includes(file_extension) && (
+                            <div className="my-2 h-full max-h-80 w-full overflow-hidden">
+                                <img src={`image_media/${media_location}`} alt={title} className="h-full w-full object-cover" />
                             </div>
-                        </div>
-                        <div className="mt-1">
-                            <h1 className="font-medium" dangerouslySetInnerHTML={{ __html: title }}></h1>
-                            <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: modifiedBody }} />
-                        </div>
+                        )}
+                        {file_extension && fileExtensionName.includes(file_extension) && (
+                            <div className='w-full flex justify-between rounded border p-3'>
+                                <div className="bg-background flex items-center gap-2">
+                                    <FileUpIcon className="text-muted-foreground" />
+                                    <p className="text-muted-foreground text-sm">{media_location}</p>
+                                </div>
+                                <div>
+                                    <Button
+                                        variant={'ghost'}
+                                        onClick={() => {
+                                            const link = document.createElement('a');
+                                            link.href = `file_media/${media_location}`;
+                                            link.download = media_location?.split('/').pop() || 'file';
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            document.body.removeChild(link);
+                                        }}
+                                    >
+                                        <Download />
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                ) : (
-                    <Link href={`/post/${id}`}>
-                        <div className="flex items-center">
-                            <Avatar className="mr-2">
-                                <AvatarImage src="" alt="@shadcn" />
-                                <AvatarFallback>{getInitials(name)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col">
-                                <div className="text-sm font-medium">{name}</div>
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <div className="text-muted-foreground w-fit cursor-pointer text-xs hover:underline">
-                                                {formatDistanceToNow(new Date(created_at), { includeSeconds: true })
-                                                    .replace(' minutes', 'm')
-                                                    .replace(' minute', 'm')}
-                                            </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>{format(new Date(created_at), 'EEEE, MMM dd, yyyy - hh:mm a')}</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            </div>
-                        </div>
-                        <div className="mt-1">
-                            <h1 className="font-medium" dangerouslySetInnerHTML={{ __html: title }}></h1>
-                            <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: modifiedBody }} />
-                        </div>
-                    </Link>
-                )}
+                </div>
 
                 <div className="flex items-center">
                     <form onSubmit={handleLike} className="relative right-[6px] flex flex-row items-center gap-1 hover:text-red-400">

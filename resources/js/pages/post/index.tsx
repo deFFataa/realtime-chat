@@ -34,8 +34,6 @@ const index = ({ posts, upcoming_meetings }: Props) => {
     //         {} as Record<number, number>,
     //     ),
     // );
-        
-    
 
     const [postLikesCount, setpostLikesCount] = useState(() =>
         posts.reduce(
@@ -170,30 +168,34 @@ const index = ({ posts, upcoming_meetings }: Props) => {
                                 <div className="text-center">
                                     <h3>No posts found.</h3>
                                     <p className="text-muted-foreground text-sm">Be the first to post something.</p>
-                                    <div className="flex items-center justify-center mt-2">
+                                    <div className="mt-2 flex items-center justify-center">
                                         <AppLogo />
                                     </div>
                                 </div>
                             </div>
                         ) : (
-                            posts.map((post) => (
-                                <div key={post.id}>
-                                    <PostCard
-                                        key={post.id}
-                                        user={post.user}
-                                        id={post.id}
-                                        title={post.title}
-                                        comments_count={post.comments_count}
-                                        likes_count={postLikesCount[post.id]}
-                                        is_liked={(post.post_likes ?? []).some((like) => like.user_id === user_id)}
-                                        body={post.body}
-                                        media_location={post.media_location}
-                                        url={post.url}
-                                        created_at={post.created_at}
-                                    />
-                                    <hr />
-                                </div>
-                            ))
+                            posts.map((post) => {
+                                // console.log(post);
+                                
+                                return (
+                                    <div key={post.id}>
+                                        <PostCard
+                                            key={post.id}
+                                            user={post.user}
+                                            id={post.id}
+                                            title={post.title}
+                                            comments_count={post.comments_count}
+                                            likes_count={postLikesCount[post.id]}
+                                            is_liked={(post.post_likes ?? []).some((like) => like.user_id === user_id)}
+                                            body={post.body}
+                                            media_location={post.media_location}
+                                            url={post.url}
+                                            created_at={post.created_at}
+                                        />
+                                        <hr />
+                                    </div>
+                                );
+                            })
                         )}
                     </div>
                     <div className="bg-background rounded-lg p-4">

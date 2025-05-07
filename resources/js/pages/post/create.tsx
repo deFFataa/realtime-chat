@@ -2,6 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppHeaderLayout from '@/layouts/app/app-header-layout';
 import { BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/react';
+import FilesImagesSection from './create_include/FilesImagesSection';
 import TextSection from './create_include/TextSection';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -29,17 +30,15 @@ const create = () => {
                                 Text
                             </TabsTrigger>
                             <TabsTrigger className="cursor-pointer" value="media">
-                                Images & Video
-                            </TabsTrigger>
-                            <TabsTrigger className="cursor-pointer" value="link">
-                                Links
+                                Files and Images
                             </TabsTrigger>
                         </TabsList>
                         <TabsContent value="text">
                             <TextSection />
                         </TabsContent>
-                        <TabsContent value="media">Images and Vidoes</TabsContent>
-                        <TabsContent value="link">Links</TabsContent>
+                        <TabsContent value="media">
+                            <FilesImagesSection />
+                        </TabsContent>
                     </Tabs>
                 </section>
             </AppHeaderLayout>
