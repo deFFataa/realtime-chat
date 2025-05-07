@@ -1,4 +1,6 @@
 import { SidebarProvider } from '@/components/ui/sidebar';
+import { SharedData } from '@/types';
+import { usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 interface AppShellProps {
@@ -17,8 +19,12 @@ export function AppShell({ children, variant = 'header' }: AppShellProps) {
         }
     };
 
+    const { url } = usePage<SharedData>();
+
+    const backgroundClass = (url.startsWith('/post') && url !== '/post/create') || url === '/home' ? 'bg-muted' : '';
+
     if (variant === 'header') {
-        return <div className="flex min-h-screen w-full flex-col">{children}</div>;
+        return <div className={`flex min-h-screen w-full flex-col ${backgroundClass}`}>{children}</div>;
     }
 
     return (

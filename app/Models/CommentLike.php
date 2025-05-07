@@ -9,4 +9,6 @@ class CommentLike extends Model
 {
     /** @use HasFactory<\Database\Factories\CommentLikeFactory> */
     use HasFactory;
+
+    protected $guarded = [];
 }

@@ -18,12 +18,12 @@ const CommentCard = ({
     user = { id: 0, name: 'Unknown' },
     id,
     comment,
-    media_location,
     likes_count = 0,
     is_liked = false,
     comments_count = 0,
     created_at,
     children: replies,
+    comment_likes_count = 0,
 }: Comments) => {
     const getInitials = useInitials();
 
@@ -53,13 +53,18 @@ const CommentCard = ({
         delete: destroy,
     } = useForm({
         post_id: id,
+        comment_id: id,
         user_id: user_id,
         comment: '',
     });
 
+    const url = usePage<SharedData>().url;
+
     const handleLike = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        post(route('discussion-board.like-post', { id }));
+        post(route('comments.like-reply', { id }), {
+            preserveScroll: true,
+        });
     };
 
     const handleDeleteComment = (e: React.FormEvent<HTMLFormElement>) => {
@@ -105,7 +110,7 @@ const CommentCard = ({
 
     return (
         <>
-            <section className="hover:bg-accent/30 rounded p-4 duration-100 ease-in" key={id}>
+            <section className={`${url !== '/post/' + data.post_id ? 'hbg-accent/30' : ''} rounded p-4 duration-100 ease-in`} key={id}>
                 <div>
                     <div className="flex items-center justify-between">
                         <div className="flex">
@@ -180,18 +185,40 @@ const CommentCard = ({
 
                 <div className="flex items-center">
                     <form onSubmit={handleLike} className="relative right-[6px] flex flex-row items-center gap-1 hover:text-red-400">
-                        <button className="rounded-full hover:bg-red-50/50 hover:text-red-400">
-                            {is_liked ? <Heart fill="#ff6467" color="#ff6467" size={34} className="p-2" /> : <Heart size={34} className="p-2" />}
-                        </button>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button className="rounded-full hover:bg-red-50/50 hover:text-red-400">
+                                        {is_liked ? (
+                                            <Heart fill="#ff6467" color="#ff6467" size={34} className="p-2" />
+                                        ) : (
+                                            <Heart size={34} className="p-2" />
+                                        )}
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Like</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                         <span className="[position:inherit] right-[8px]">{likes_count}</span>
                     </form>
                     <div className="flex items-center hover:text-green-400">
-                        <div
-                            onClick={showRepliesAndTextArea}
-                            className="relative right-[10px] scale-x-[-1] rounded-full hover:bg-green-50/50 hover:text-green-400"
-                        >
-                            <MessageCircle size={34} className="p-2" />
-                        </div>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div
+                                        onClick={showRepliesAndTextArea}
+                                        className="relative right-[10px] scale-x-[-1] rounded-full hover:bg-green-50/50 hover:text-green-400"
+                                    >
+                                        <MessageCircle size={34} className="p-2" />
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Reply</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                         <span className="relative right-[12px]">{comments_count}</span>
                     </div>
                 </div>
@@ -207,17 +234,31 @@ const CommentCard = ({
                                 repliesElements.forEach((reply) => {
                                     reply.classList.remove('hidden');
                                 });
+                                showRepliesAndTextArea();
                             }}
                         >
                             {`View ${replies?.length} ${replies?.length === 1 ? 'reply' : 'replies'}`}
                         </button>
                     )}
 
-                    {replies?.map((reply) => (
-                        <div key={reply.id} id={`replies-${id}`} className="hidden ml-4">
-                            <CommentCard {...reply} />
-                        </div>
-                    ))}
+                    {replies?.map((reply, index) => {                        
+                        return (
+                            <div key={reply.id} id={`replies-${id}`} className="border-muted relative ml-4 hidden border-l-2 pl-4">
+                                <CommentCard 
+                                    id={reply.id}
+                                    comment={reply.comment}
+                                    user={reply.user}
+                                    created_at={reply.created_at}
+                                    is_liked={(reply.comment_likes_count ?? 0) > 0 || ([] as { user_id: number }[]).some((like) => like.user_id === user_id)}
+                                    likes_count={reply.comment_likes_count}
+                                    comments_count={reply.children.length}
+                                    children={reply.children}
+
+                                />
+                                {index < (replies.length ?? 0) - 1 && <hr />}
+                            </div>
+                        );
+                    })}
                 </div>
                 <form className="hidden py-2" id={`comment-form-${id}`}>
                     <Avatar className="mr-2">

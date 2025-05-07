@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Comment;
 use App\Http\Requests\StoreCommentRequest;
 use App\Http\Requests\UpdateCommentRequest;
+use App\Models\CommentLike;
 use Illuminate\Http\Request;
 
 class CommentController extends Controller
@@ -93,5 +94,30 @@ class CommentController extends Controller
 
         return redirect()->back();
 
+    }
+
+    public function like(Request $request, Comment $comment)
+    {
+        $validated = $request->validate([
+            'user_id' => ['required'],
+            'comment_id' => ['required'],
+        ]);
+
+        // dd($validated);
+
+        if (CommentLike::where('user_id', $validated['user_id'])->where('comment_id', $validated['comment_id'])->exists()) {
+            CommentLike::where('user_id', $validated['user_id'])->where('comment_id', $validated['comment_id'])->delete();
+            return redirect()->back();
+        }
+
+        try {
+            CommentLike::create($validated);
+        } catch (\Throwable $th) {
+            echo 'Error:' . $th;
+            exit;
+            // return;
+        }
+
+        return redirect()->back();
     }
 }

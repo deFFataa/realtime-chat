@@ -25,15 +25,17 @@ const index = ({ posts, upcoming_meetings }: Props) => {
 
     const getInitials = useInitials();
 
-    const [commentsCount, setCommentsCount] = useState(() =>
-        posts.reduce(
-            (acc, post) => {
-                acc[post.id] = post.comments?.length || 0;
-                return acc;
-            },
-            {} as Record<number, number>,
-        ),
-    );
+    // const [commentsCount, setCommentsCount] = useState(() =>
+    //     posts.reduce(
+    //         (acc, post) => {
+    //             acc[post.id] = post.comments_count || 0; // 👈 use comments_count here
+    //             return acc;
+    //         },
+    //         {} as Record<number, number>,
+    //     ),
+    // );
+        
+    
 
     const [postLikesCount, setpostLikesCount] = useState(() =>
         posts.reduce(
@@ -46,15 +48,15 @@ const index = ({ posts, upcoming_meetings }: Props) => {
     );
 
     useEffect(() => {
-        setCommentsCount(
-            posts.reduce(
-                (acc, post) => {
-                    acc[post.id] = post.comments?.length || 0;
-                    return acc;
-                },
-                {} as Record<number, number>,
-            ),
-        );
+        // setCommentsCount(
+        //     posts.reduce(
+        //         (acc, post) => {
+        //             acc[post.id] = post.comments?.length || 0;
+        //             return acc;
+        //         },
+        //         {} as Record<number, number>,
+        //     ),
+        // );
         setpostLikesCount(
             posts.reduce(
                 (acc, post) => {
@@ -181,7 +183,7 @@ const index = ({ posts, upcoming_meetings }: Props) => {
                                         user={post.user}
                                         id={post.id}
                                         title={post.title}
-                                        comments_count={commentsCount[post.id]}
+                                        comments_count={post.comments_count}
                                         likes_count={postLikesCount[post.id]}
                                         is_liked={(post.post_likes ?? []).some((like) => like.user_id === user_id)}
                                         body={post.body}

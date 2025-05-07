@@ -23,13 +23,24 @@ class PostController extends Controller
         if (Auth::user()->role == 'admin') {
             abort(403);
         }
-
+    
+        $posts = Post::with(['user', 'comments.children', 'post_likes'])->latest()->get();
+    
+        // Add comment count including nested replies
+        foreach ($posts as $post) {
+            $topLevelComments = $post->comments->whereNull('parent_id');
+            $flattened = $this->flattenComments($topLevelComments);
+            $post->comments_count = $flattened->count();
+        }
+    
         return Inertia::render("post/index", [
-            'posts' => Post::with(['user', 'comments', 'post_likes'])->latest()->get(),
-            'upcoming_meetings' => Scheduler::where('date_of_meeting', '>', now())->take(3)->orderBy('date_of_meeting', 'asc')->get(),
+            'posts' => $posts,
+            'upcoming_meetings' => Scheduler::where('date_of_meeting', '>', now())
+                ->take(3)
+                ->orderBy('date_of_meeting', 'asc')
+                ->get(),
         ]);
     }
-
     /**
      * Show the form for creating a new resource.
      */
@@ -69,24 +80,47 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        $post->load(['user', 'post_likes']); // Load relations for the post
+        $post->load(['user', 'post_likes']);
+
+        $topLevelComments = Comment::with(['user', 'children'])
+        ->withCount('comment_likes')
+        ->where('post_id', $post->id)
+        ->whereNull('parent_id')
+        ->get();    
     
-        // Get top-level comments (those without a parent) with their nested children and user
-        $topLevelComments = Comment::with(['user', 'children.user']) // load user for both parent and replies
-            ->where('post_id', $post->id)
-            ->whereNull('parent_id')
-            ->get();
-    
+        $allComments = $this->flattenComments($topLevelComments);
+        $commentsCount = $allComments->count();
+
+
+
+        // dd($topLevelComments->toArray());
+
         return Inertia::render("post/show", [
             'post' => $post,
+            'comments' => $topLevelComments,
+            'comments_count' => $commentsCount,
             'upcoming_meetings' => Scheduler::where('date_of_meeting', '>', now())
                 ->take(3)
                 ->orderBy('date_of_meeting', 'asc')
                 ->get(),
-            'comments' => $topLevelComments, // ✅ Only top-level comments with nested replies
         ]);
     }
-    
+
+    private function flattenComments($comments)
+    {
+        $flattened = collect();
+
+        foreach ($comments as $comment) {
+            $flattened->push($comment);
+
+            if ($comment->children && $comment->children->isNotEmpty()) {
+                $flattened = $flattened->merge($this->flattenComments($comment->children));
+            }
+        }
+
+        return $flattened;
+    }
+
 
     /**
      * Show the form for editing the specified resource.
@@ -132,7 +166,8 @@ class PostController extends Controller
         return redirect()->back();
     }
 
-    public function like(Request $request, Post $post){
+    public function like(Request $request, Post $post)
+    {
         $validated = $request->validate([
             'user_id' => ['required'],
             'post_id' => ['required'],

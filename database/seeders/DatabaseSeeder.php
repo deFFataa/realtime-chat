@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\MeetingAttendance;
+use App\Models\Post;
 use App\Models\Scheduler;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -21,7 +22,7 @@ class DatabaseSeeder extends Seeder
             "first_name" => "Isaac Luis",
             "middle_name" => "Lauan",
             "last_name" => "Balabbo",
-            "email" => "balabboisaac@gmail.com",
+            "email" => "isaac@gmail.com",
             "password" => bcrypt("Winsyple19"),
             "role" => "super-admin",
         ]);
@@ -38,6 +39,7 @@ class DatabaseSeeder extends Seeder
         });
         User::factory(5)->create()->each(function ($user) {
             UserAddress::factory()->create(['user_id' => $user->id]);
+            Post::factory(5)->create(['user_id' => $user->id]);
         });
 
         Scheduler::factory(5)->create();
@@ -54,5 +56,7 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
         }
+
+        // Post::factory(30)->create();
     }
 }

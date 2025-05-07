@@ -52,7 +52,9 @@ const PostCard = ({ user: { name }, id, title = '', body, media_location, commen
 
     const handleLike = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        post(route('discussion-board.like-post', { id }));
+        post(route('discussion-board.like-post', { id }), {
+            preserveScroll: true,
+        });
     };
 
     return (

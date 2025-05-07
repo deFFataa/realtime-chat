@@ -15,14 +15,9 @@ import { Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast, Toaster } from 'sonner';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Discussion Board',
-        href: '/discussion-board',
-    },
-];
 
-const index = ({ post, upcoming_meetings, comments }: Props) => {
+
+const index = ({ post, upcoming_meetings, comments, comments_count }: Props) => {
     const { name, id: user_id } = usePage<SharedData>().props.auth.user;
 
     const { auth } = usePage<SharedData>().props;
@@ -30,6 +25,8 @@ const index = ({ post, upcoming_meetings, comments }: Props) => {
     const getInitials = useInitials();
 
     const chatInput = useRef<HTMLTextAreaElement>(null);
+
+    
 
     const {
         data,
@@ -42,16 +39,16 @@ const index = ({ post, upcoming_meetings, comments }: Props) => {
         user_id: auth.user.id,
     });
 
-        const [commentsCount, setCommentsCount] = useState(post.comments?.length || 0);
-        const [postLikesCount, setPostLikesCount] = useState(post.post_likes?.length || 0);
+    const [commentsCount, setCommentsCount] = useState(comments_count || 0);
+    const [postLikesCount, setPostLikesCount] = useState(post.post_likes?.length || 0);
 
-        useEffect(() => {
-            setCommentsCount(comments.length);
-        }, [comments]);
+    useEffect(() => {
+        setCommentsCount(comments_count);
+    }, [comments]);
 
-        useEffect(() => {
-            setPostLikesCount(post.post_likes?.length || 0);
-        }, [post.post_likes]);
+    useEffect(() => {
+        setPostLikesCount(post.post_likes?.length || 0);
+    }, [post.post_likes]);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -68,7 +65,16 @@ const index = ({ post, upcoming_meetings, comments }: Props) => {
         });
     };
 
-    console.log(comments);
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: 'Home',
+            href: '/home',
+        },
+        {
+            title: `${post.user.name.trim()}'s Post ${post.title ? `- ${post.title}` : ''}`,
+            href: '#',
+        },
+    ];
 
     return (
         <div className="bg-muted">
@@ -78,7 +84,7 @@ const index = ({ post, upcoming_meetings, comments }: Props) => {
                 <div className="mx-auto px-4 py-4 md:max-w-7xl">
                     <div className="grid grid-cols-4 gap-3">
                         <div className="relative">
-                            <div className="sticky top-[82px] flex flex-col gap-3">
+                            <div className="sticky top-[130px] flex flex-col gap-3">
                                 <div>
                                     <div className="bg-background h-fit rounded-lg p-4">
                                         <div className="flex flex-col items-center justify-center gap-2">
@@ -169,19 +175,19 @@ const index = ({ post, upcoming_meetings, comments }: Props) => {
                             </div>
                         </div>
                         <div className="bg-background col-span-2 h-fit rounded-lg">
-                        <PostCard
-                                    key={post.id}
-                                    user={post.user}
-                                    id={post.id}
-                                    title={post.title}
-                                    comments_count={commentsCount}
-                                    likes_count={postLikesCount}
-                                    is_liked={(post.post_likes ?? []).some((like) => like.user_id === user_id)}
-                                    body={post.body}
-                                    media_location={post.media_location}
-                                    url={post.url}
-                                    created_at={post.created_at}
-                                />
+                            <PostCard
+                                key={post.id}
+                                user={post.user}
+                                id={post.id}
+                                title={post.title}
+                                comments_count={commentsCount}
+                                likes_count={postLikesCount}
+                                is_liked={(post.post_likes ?? []).some((like) => like.user_id === user_id)}
+                                body={post.body}
+                                media_location={post.media_location}
+                                url={post.url}
+                                created_at={post.created_at}
+                            />
                             <hr />
                             <div className="flex p-4">
                                 <Avatar className="mr-2">
@@ -190,7 +196,7 @@ const index = ({ post, upcoming_meetings, comments }: Props) => {
                                 </Avatar>
                                 <Textarea
                                     name="comment"
-                                    id='comment'
+                                    id="comment"
                                     ref={chatInput}
                                     autoFocus
                                     className="scrollbar-hide focus-visible:border-ring/0 focus-visible:ring-ring/0 h-full max-h-[70px] min-h-auto w-full flex-1 resize-none overflow-x-hidden overflow-y-auto border-none px-0 break-words break-all shadow-none"
@@ -214,6 +220,8 @@ const index = ({ post, upcoming_meetings, comments }: Props) => {
                                             key={comment.id}
                                             comment={comment.comment}
                                             children={comment.children}
+                                            is_liked={(comment.comment_likes_count ?? 0) > 0 || ([] as { user_id: number }[]).some((like) => like.user_id === user_id)}
+                                            likes_count={comment.comment_likes_count }
                                             comments_count={comment.children?.length || 0}
                                             user={comment.user}
                                             id={comment.id}

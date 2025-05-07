@@ -3,6 +3,7 @@ import { ReactNode } from "react";
 export interface Props {
     post: Post;
     comments: Array<Comments>;
+    comments_count: any;
     posts: Array<Post>;
     upcoming_meetings: Array<Meetings>;
 }
@@ -37,6 +38,7 @@ export interface Meetings {
 export interface Comments{
     id: number;
     likes_count?: number;
+    comment_likes_count?: number;
     is_liked?: boolean;
     comments_count?: number;
     user?: {
