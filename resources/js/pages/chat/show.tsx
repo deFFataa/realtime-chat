@@ -72,7 +72,6 @@ export default function Show({ messages, user, users, groups }: Props) {
                 const navHeight = navheader.offsetHeight;
                 const viewportHeight = window.innerHeight;
                 const calculatedHeight = viewportHeight - navHeight - 120;
-                setAvailableHeight(`${calculatedHeight}px`);
             }
         };
 
@@ -233,7 +232,6 @@ export default function Show({ messages, user, users, groups }: Props) {
     return (
         <AppHeaderLayout breadcrumbs={breadcrumbs}>
             <Head title="Chat" />
-            <div className="mx-auto flex items-center px-4 md:max-w-7xl">
                 <ChatSidebarLayout users={users} groups={groups}>
                     <div className="h-full p-4">
                         <h2 className="font-bold">{ProperName(user.name)}</h2>
@@ -242,7 +240,6 @@ export default function Show({ messages, user, users, groups }: Props) {
                                 {chats.length === 0 && (
                                     <div
                                         className="grid flex-1 place-items-center overflow-auto rounded-md border font-medium"
-                                        style={{ maxHeight: availableHeight }}
                                     >
                                         👋 Say hi to {user.name}.
                                     </div>
@@ -252,7 +249,6 @@ export default function Show({ messages, user, users, groups }: Props) {
                                     <div
                                         ref={chatContainerRef}
                                         className="flex-1 overflow-auto rounded-md border p-5"
-                                        style={{ maxHeight: availableHeight }}
                                     >
                                         <div className="flex flex-col gap-4">
                                             {chats?.map((chat: any) => (
@@ -298,7 +294,6 @@ export default function Show({ messages, user, users, groups }: Props) {
                         </form>
                     </div>
                 </ChatSidebarLayout>
-            </div>
         </AppHeaderLayout>
     );
 }

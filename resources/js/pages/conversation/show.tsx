@@ -122,7 +122,7 @@ export default function Show({ messages, conversation, users, groups, conversati
 
     const auth_user: User = usePage().props.auth as User;
 
-    const [availableHeight, setAvailableHeight] = useState('400px');
+    // const [availableHeight, setAvailableHeight] = useState('400px');
 
     useEffect(() => {
         const updateHeight = () => {
@@ -131,7 +131,7 @@ export default function Show({ messages, conversation, users, groups, conversati
                 const navHeight = navheader.offsetHeight;
                 const viewportHeight = window.innerHeight;
                 const calculatedHeight = viewportHeight - navHeight - 120;
-                setAvailableHeight(`${calculatedHeight}px`);
+                // setAvailableHeight(`${calculatedHeight}px`);
             }
         };
 
@@ -638,11 +638,10 @@ export default function Show({ messages, conversation, users, groups, conversati
                         </Popover>
                     </div>
                     <form onSubmit={handleSubmit} className="grid h-full w-full place-items-center">
-                        <div className="mt-4 flex h-full w-full flex-col">
+                        <div className="mt-4 flex h-full w-full flex-col flex-1">
                             {chats.length === 0 && (
                                 <div
                                     className="grid flex-1 place-items-center overflow-auto rounded-md border font-medium"
-                                    style={{ maxHeight: availableHeight }}
                                 >
                                     👋 Say hi to {conversation_name}.
                                 </div>
@@ -652,7 +651,6 @@ export default function Show({ messages, conversation, users, groups, conversati
                                 <div
                                     ref={chatContainerRef}
                                     className="flex-1 overflow-auto rounded-md border p-5"
-                                    style={{ maxHeight: availableHeight }}
                                 >
                                     <div className="flex flex-col gap-4">
                                         {chats?.map((chat: any) => (

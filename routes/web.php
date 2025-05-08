@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PdfMergeController;
 use App\Models\Post;
 use App\Models\User;
 use Inertia\Inertia;
@@ -33,6 +34,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         if (Auth::user()->role === 'user') {
             abort(403);
         }
+
+        $test = Scheduler::where('date_of_meeting', '>', now())
+            ->orderBy('date_of_meeting', 'asc')
+            ->first(['date_of_meeting', 'start_time', 'end_time']);
+
+        // dd($test);
+
         return Inertia::render('admin/dashboard/index', [
             'new_users' => User::whereBetween('created_at', [now()->subWeek(), now()])->where('role', 'user')->latest()->get(),
             'users_count' => User::where('role', 'user')->count(),
@@ -42,6 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->count(),
             'all_users' => User::where('role', 'user')->get(['name', 'created_at']),
             'schedule' => Scheduler::all(),
+            'upcoming_meeting' => $test,
             'agenda' => Agenda::count(),
             'minutesOfMeeting' => MinutesOfMeeting::count(),
             'feedbacks' => Feedback::with('user')->latest()->get(),
@@ -57,6 +66,13 @@ Route::get('attendance/{scheduler}/confirm/{user}', [SchedulerController::class,
 
 Route::post('feedback/{user_id}', [FeedbackController::class, 'store'])
     ->name('feedback.store');
+
+
+Route::get('/pdf-merge', function () {
+    return Inertia::render('admin/pdfmerger/index');
+});
+
+Route::post('/merge', [PdfMergeController::class, 'merge'])->name('pdf.merge');
 
 
 require __DIR__ . '/settings.php';

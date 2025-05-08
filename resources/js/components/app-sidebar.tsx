@@ -4,11 +4,17 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { Calendar, CalendarClock, Handshake, LayoutGrid, Megaphone, NotebookPen, Plus, Star, Users } from 'lucide-react';
+import { Calendar, CalendarClock, File, FileStack, Handshake, LayoutGrid, Megaphone, NotebookPen, Plus, Star, User, Users } from 'lucide-react';
 import AppLogo from './app-logo';
 import { Button } from './ui/button';
 
-const footerNavItems: NavItem[] = [];
+const footerNavItems: NavItem[] = [
+    {
+        title: "My User Account",
+        href: '/home',
+        icon: User,
+    },
+];
 
 export function AppSidebar() {
     const is_admin = usePage<any>().props.auth.user.role === 'admin' || usePage<any>().props.auth.user.role === 'super-admin';
@@ -18,6 +24,11 @@ export function AppSidebar() {
             title: 'Dashboard',
             href: '/admin/dashboard',
             icon: LayoutGrid,
+        },
+        {
+            title: 'File Merger',
+            href: '/pdf-merge',
+            icon: FileStack,
         },
         {
             title: 'Meeting Scheduler',

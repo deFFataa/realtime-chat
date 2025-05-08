@@ -99,9 +99,9 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
     }, [searchQuery, users, groupList]);
 
     return (
-        <div className="grid flex-1 grid-cols-3">
-            <div className="flex max-h-screen flex-col overflow-auto border-r text-sm">
-                <div className="bg-background -500 sticky top-0 py-4 px-2">
+        <div className="grid flex-1 grid-cols-3 md:max-w-7xl mx-auto ps-2">
+            <div className="flex max-h-fit flex-col overflow-auto border-r text-sm">
+                <div className="bg-background sticky top-0 py-4 px-2">
                     <div className="flex justify-between">
                         <h1 className="text-lg font-bold">Chats</h1>
                         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
@@ -181,7 +181,7 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
                         ))
                     )
                 ) : (
-                    <>
+                    <div className='max-h-[calc(100vh-280px)] overflow-y-auto'>
                         <>
                             <h6 className="text-foreground/70 mb-1 px-2 text-xs">All</h6>
                             <Link
@@ -226,7 +226,7 @@ const ChatSidebarLayout = ({ users = [], children, groups = [] }: Props) => {
                                 ))}
                             </>
                         )}
-                    </>
+                    </div>
                 )}
             </div>
             <div className="col-span-2">{children}</div>

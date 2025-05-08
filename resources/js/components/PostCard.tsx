@@ -170,21 +170,22 @@ const PostCard = ({
                         <h1 className="font-medium" dangerouslySetInnerHTML={{ __html: title }} />
                         <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: modifiedBody }} />
                         {file_extension && imageExtensionName.includes(file_extension) && (
-                            <div className="my-2 h-full max-h-80 w-full overflow-hidden">
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Button variant="ghost" className="h-full w-full cursor-pointer p-0">
-                                            <img src={`/image_media/${media_location}`} alt={title} className="h-full w-full object-cover" />
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent className="h-fit w-full">
-                                        <DialogHeader></DialogHeader>
-                                        <div className="max-h-[80vh] overflow-auto">
-                                            <img src={`/image_media/${media_location}`} alt={title} className="w-full" />
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
-                            </div>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="ghost" className="h-full w-full cursor-pointer p-0">
+                                        <img
+                                            src={`/image_media/${media_location}`}
+                                            alt={title}
+                                            className="my-2 h-full max-h-80 w-full overflow-hidden object-cover"
+                                        />
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="bg-transparent p-0 backdrop-blur-sm sm:max-h-full sm:max-w-full">
+                                    <div className="flex h-screen w-screen items-center justify-center bg-white/50">
+                                        <img src={`/image_media/${media_location}`} alt={title} className="h-auto max-h-full w-auto max-w-full p-0" />
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
                         )}
                         {file_extension && fileExtensionName.includes(file_extension) && (
                             <div className="bg-background my-2 flex w-full justify-between rounded border p-3">

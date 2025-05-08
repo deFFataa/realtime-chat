@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\Agenda;
 use Illuminate\Support\Str;
@@ -12,6 +13,13 @@ use App\Http\Requests\UpdateAgendaRequest;
 
 class AgendaController extends Controller
 {
+
+    public function __construct(){
+        if(Auth::user()->role === 'user'){
+            abort(403);
+        }
+    }
+
     /**
      * Display a listing of the resource.
      */

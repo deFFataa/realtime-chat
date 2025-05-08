@@ -94,7 +94,7 @@ class ConversationController extends Controller
         return Inertia::render("conversation/show", [
             "conversation" => Conversation::find($id),
             'users' => User::whereNotIn('id', GroupMember::where('conversation_id', $id)->pluck('user_id'))->where('id', '!=', $userId)->get(),
-            'users_sidebar' => User::all()->except(auth()->id()),
+            'users_sidebar' => User::where('role', 'user')->get(),
             'groups' => GroupMember::with(['user', 'conversation'])->where('user_id', $userId)->get(),
             'group_members' => GroupMember::with('user')->where('conversation_id', $id)->get(),
             'conversation_name' => Conversation::find($id)->conversation_name,

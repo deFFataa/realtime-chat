@@ -113,8 +113,8 @@ const index = ({ posts, upcoming_meetings, total_posts, total_likes }: Props) =>
                                     <div className="flex flex-col gap-2">
                                         <h3 className="font-medium">Upcoming Meetings</h3>
                                         {upcoming_meetings.map((meeting) => {
-                                            const startTime = new Date(`1970-01-01T${meeting.start_time}Z`);
-                                            const endTime = new Date(`1970-01-01T${meeting.end_time}Z`);
+                                            const startTime = new Date(`${meeting.date_of_meeting}T${meeting.start_time}`);
+                                            const endTime = new Date(`${meeting.date_of_meeting}T${meeting.end_time}`);
                                             return (
                                                 <Dialog key={meeting.id}>
                                                     <DialogTrigger asChild>
@@ -146,7 +146,7 @@ const index = ({ posts, upcoming_meetings, total_posts, total_likes }: Props) =>
                                                                         {format(meeting.date_of_meeting, 'MMM dd yyyy')}
                                                                     </div>
                                                                 </div>
-                                                                <div className='col-span-2'>
+                                                                <div className="col-span-2">
                                                                     <span className="font-medium">Time</span>
                                                                     <div className="rounded border p-2 text-sm">
                                                                         {`${format(startTime, 'h:mm a')} - ${format(endTime, 'h:mm a')}`}

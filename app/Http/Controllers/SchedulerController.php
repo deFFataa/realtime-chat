@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\Scheduler;
 use Illuminate\Http\Request;
@@ -17,6 +18,13 @@ class SchedulerController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    public function __construct()
+    {
+        if (Auth::user()->role === 'user') {
+            abort(403);
+        }
+    }
     public function index()
     {
         $attendance = MeetingAttendance::with('user')->get()->groupBy('meeting_id');

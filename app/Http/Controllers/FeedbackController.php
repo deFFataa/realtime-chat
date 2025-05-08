@@ -6,6 +6,7 @@ use App\Models\Feedback;
 use App\Http\Requests\StoreFeedbackRequest;
 use App\Http\Requests\UpdateFeedbackRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class FeedbackController extends Controller
@@ -15,6 +16,11 @@ class FeedbackController extends Controller
      */
     public function index()
     {
+        if (Auth::user()->role === 'user') {
+            abort(403);
+        }
+
+
         return Inertia::render('admin/feedback/index', [
             'feedbacks' => Feedback::with('user')->latest()->get()->map(function ($feedback) {
                 return [

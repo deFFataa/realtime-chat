@@ -11,7 +11,7 @@ import TotalAgenda from './includes/TotalAgenda';
 import TotalBoardResolution from './includes/TotalBoardResolution';
 import TotalDiscussionBoard from './includes/TotalDiscussionBoard';
 import TotalMoM from './includes/TotalMoM';
-import UpcomingEvent from './includes/UpcomingEvent';
+import UpcomingMeeting from './includes/UpcomingMeeting';
 
 (window as any).Pusher = Pusher;
 
@@ -44,9 +44,27 @@ interface Props {
     }>;
     rating_today: number;
     overall_rating: number;
+    upcoming_meeting: {
+        date_of_meeting: string;
+        start_time: string;
+        end_time: string;
+    };
 }
 
-export default function Dashboard({ users_count, post_count, new_users, active_users, all_users, schedule, agenda, minutesOfMeeting, feedbacks, rating_today, overall_rating }: Props) {
+export default function Dashboard({
+    users_count,
+    post_count,
+    new_users,
+    active_users,
+    all_users,
+    schedule,
+    agenda,
+    minutesOfMeeting,
+    feedbacks,
+    rating_today,
+    overall_rating,
+    upcoming_meeting,
+}: Props) {
     const [totalUsers, setTotalUsers] = useState(users_count || 0);
     const [totalPosts, setTotalPosts] = useState(post_count || 0);
     const [totalActiveUsers, setTotalActiveUsers] = useState(active_users || 0);
@@ -55,8 +73,11 @@ export default function Dashboard({ users_count, post_count, new_users, active_u
     const [totalAgenda, setTotalAgenda] = useState(agenda || 0);
     const [totalMoM, setTotalMoM] = useState(minutesOfMeeting || 0);
 
-    console.log(totalMoM);
-    
+    const [upcomingDateMeeting, setUpcomingDateMeeting] = useState(upcoming_meeting.date_of_meeting);
+    const [upcomingStartTimeMeeting, setUpcomingStartTimeMeeting] = useState(upcoming_meeting.start_time);
+    const [upcomingendTimeMeeting, setUpcomingendTimeMeeting] = useState(upcoming_meeting.end_time);
+
+    // console.log(totalMoM);
 
     useEffect(() => {
         const echo = new Echo({
@@ -83,16 +104,20 @@ export default function Dashboard({ users_count, post_count, new_users, active_u
             <Head title="Dashboard" />
             <div className="bg-secondary flex h-full flex-1 flex-col gap-4 p-4">
                 <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    <TotalAgenda totalAgenda={totalAgenda}/>
-                    <TotalMoM totalMoM={totalMoM}/>
+                    <TotalAgenda totalAgenda={totalAgenda} />
+                    <TotalMoM totalMoM={totalMoM} />
                     <TotalBoardResolution />
                     <TotalDiscussionBoard />
                     <ActiveUsers totalActiveUsers={totalActiveUsers} />
-                    <UpcomingEvent />
+                    <UpcomingMeeting
+                        upcomingDateMeeting={upcomingDateMeeting}
+                        upcomingStartTimeMeeting={upcomingStartTimeMeeting}
+                        upcomingEndTimeMeeting={upcomingendTimeMeeting}
+                    />
                 </div>
                 <div className="grid min-h-0 flex-1 grid-cols-2 gap-4 max-lg:grid-cols-1">
-                    <ScheduleAndReminders schedule={schedule}/>
-                    <FeedbackSummaryReport feedbacks={feedbacks} rating_today={rating_today} overall_rating={overall_rating}/>
+                    <ScheduleAndReminders schedule={schedule} />
+                    <FeedbackSummaryReport feedbacks={feedbacks} rating_today={rating_today} overall_rating={overall_rating} />
                 </div>
             </div>
         </AppLayout>

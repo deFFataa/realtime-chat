@@ -11,9 +11,10 @@ import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { Bell, BookOpen, Folder, Home, LayoutGrid, Mail, Megaphone, Menu, Plus, Search } from 'lucide-react';
+import { Bell, BookOpen, Folder, Home, LayoutGrid, Mail, Megaphone, Menu, Plus, Search, User } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
+import { useEffect } from 'react';
 
 const mainNavItems: NavItem[] = [
     // {
@@ -34,13 +35,6 @@ const mainNavItems: NavItem[] = [
 
 ];
 
-const rightNavItems: NavItem[] = [
-    {
-        title: 'Chat',
-        href: '/chat',
-        icon: Mail,
-    },
-];
 
 const activeItemStyles = 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100';
 
@@ -51,7 +45,34 @@ interface AppHeaderProps {
 export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const page = usePage<SharedData>();
     const { auth } = page.props;
+
+    const is_admin = auth.user.role === 'admin' || auth.user.role === 'super-admin';
     const getInitials = useInitials();
+
+    const rightNavItems: NavItem[] = is_admin ? [
+        {
+            title: 'Chat',
+            href: '/chat',
+            icon: Mail,
+        },
+        {
+            title: 'My Admin Account',
+            href: '/admin/dashboard',
+            icon: User,
+        },
+    ] : [
+        {
+            title: 'Chat',
+            href: '/chat',
+            icon: Mail,
+        },
+    ];
+    
+    
+    useEffect(() => {
+        
+    })
+
     return (
         <div className='sticky top-0 z-50 bg-background'>
             <div className="border-sidebar-border/80 border-b">

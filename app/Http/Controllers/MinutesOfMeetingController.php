@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\Agenda;
 use Illuminate\Support\Str;
@@ -16,6 +17,13 @@ class MinutesOfMeetingController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+     public function __construct(){
+        if(Auth::user()->role === 'user'){
+            abort(403);
+        }
+    }
+
     public function index()
     {
         return Inertia::render('admin/minutes_of_meeting/index', [
