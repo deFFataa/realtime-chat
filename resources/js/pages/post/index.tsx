@@ -20,7 +20,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const index = ({ posts, upcoming_meetings }: Props) => {
+const index = ({ posts, upcoming_meetings, total_posts, total_likes }: Props) => {
     const { name, id: user_id } = usePage<SharedData>().props.auth.user;
 
     const getInitials = useInitials();
@@ -86,18 +86,13 @@ const index = ({ posts, upcoming_meetings }: Props) => {
 
                                         <div className="mt-3 flex h-10 items-center space-x-4 text-center">
                                             <div className="flex flex-col">
-                                                <div className="font-medium">250</div>
+                                                <div className="font-medium">{total_posts}</div>
                                                 <div className="text-muted-foreground text-sm">Post</div>
                                             </div>
 
                                             <Separator orientation="vertical" />
                                             <div className="flex flex-col">
-                                                <div className="font-medium">250</div>
-                                                <div className="text-muted-foreground text-sm">Comments</div>
-                                            </div>
-                                            <Separator orientation="vertical" />
-                                            <div className="flex flex-col">
-                                                <div className="font-medium">250</div>
+                                                <div className="font-medium">{total_likes}</div>
                                                 <div className="text-muted-foreground text-sm">Likes</div>
                                             </div>
                                         </div>
@@ -132,25 +127,31 @@ const index = ({ posts, upcoming_meetings }: Props) => {
                                                         </Button>
                                                     </DialogTrigger>
                                                     <DialogContent className="sm:max-w-[425px]">
-                                                        <DialogHeader>
+                                                        <DialogHeader className="mx-auto">
                                                             <DialogTitle>Meeting Details</DialogTitle>
                                                         </DialogHeader>
                                                         <div className="grid gap-4 py-4">
                                                             <div>
-                                                                <span className="font-medium">Agenda: </span>
-                                                                {meeting.title}
+                                                                <span className="font-medium">Agenda</span>
+                                                                <div className="rounded border p-2">{meeting.title}</div>
                                                             </div>
                                                             <div>
-                                                                <span className="font-medium">Description: </span>
-                                                                {meeting.description}
+                                                                <span className="font-medium">Description</span>
+                                                                <div className="rounded border p-2 text-sm">{meeting.description}</div>
                                                             </div>
-                                                            <div>
-                                                                <span className="font-medium">Date: </span>
-                                                                {format(meeting.date_of_meeting, 'MMM dd yyyy')}
-                                                            </div>
-                                                            <div>
-                                                                <span className="font-medium">Time: </span>
-                                                                {`${format(startTime, 'h:mm a')} - ${format(endTime, 'h:mm a')}`}
+                                                            <div className="grid grid-cols-5 gap-2">
+                                                                <div className="col-span-3">
+                                                                    <span className="font-medium">When</span>
+                                                                    <div className="rounded border p-2 text-sm">
+                                                                        {format(meeting.date_of_meeting, 'MMM dd yyyy')}
+                                                                    </div>
+                                                                </div>
+                                                                <div className='col-span-2'>
+                                                                    <span className="font-medium">Time</span>
+                                                                    <div className="rounded border p-2 text-sm">
+                                                                        {`${format(startTime, 'h:mm a')} - ${format(endTime, 'h:mm a')}`}
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </DialogContent>

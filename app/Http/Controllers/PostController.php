@@ -6,11 +6,9 @@ use App\Models\Comment;
 use App\Models\Post;
 use App\Models\PostLike;
 use App\Models\Scheduler;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use Str;
 
@@ -25,17 +23,26 @@ class PostController extends Controller
             abort(403);
         }
 
-        $posts = Post::with(['user', 'comments.children', 'post_likes'])->latest()->get();
+        $user = Auth::user();
 
-        // Add comment count including nested replies
+        $posts = Post::with(['user', 'comments.children', 'post_likes'])
+            ->where('user_id', $user->id)
+            ->latest()
+            ->get();
+
         foreach ($posts as $post) {
             $topLevelComments = $post->comments->whereNull('parent_id');
             $flattened = $this->flattenComments($topLevelComments);
             $post->comments_count = $flattened->count();
         }
 
+        $totalPosts = $posts->count();
+        $totalLikes = PostLike::whereIn('post_id', $posts->pluck('id'))->count();
+
         return Inertia::render("post/index", [
-            'posts' => $posts,
+            'posts' => Post::with(['user', 'comments.children', 'post_likes'])->latest()->get(),
+            'total_posts' => $totalPosts,
+            'total_likes' => $totalLikes,
             'upcoming_meetings' => Scheduler::where('date_of_meeting', '>', now())
                 ->take(3)
                 ->orderBy('date_of_meeting', 'asc')
@@ -99,9 +106,9 @@ class PostController extends Controller
             $baseFileName = $slug;
             $fileName = $baseFileName . '_' . time() . '.' . $extension;
 
-            if(in_array($extension, $fileExt)) {
+            if (in_array($extension, $fileExt)) {
                 $file->move(public_path('file_media'), $fileName);
-            } else if(in_array($extension, $imageExt)) {
+            } else if (in_array($extension, $imageExt)) {
                 $file->move(public_path('image_media'), $fileName);
             } else {
                 return abort(404);
@@ -195,9 +202,9 @@ class PostController extends Controller
             $imagePath = public_path('image_media/' . $post->media_location);
 
             if (file_exists($filePath)) {
-            unlink($filePath);
+                unlink($filePath);
             } elseif (file_exists($imagePath)) {
-            unlink($imagePath);
+                unlink($imagePath);
             }
         }
 

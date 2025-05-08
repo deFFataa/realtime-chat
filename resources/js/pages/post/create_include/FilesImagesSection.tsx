@@ -301,8 +301,8 @@ const FilesImagesSection = () => {
                     {files.length > 0 && (
                         <div className="flex items-center gap-2">
                             <Avatar>
-                                <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                                <AvatarFallback>CN</AvatarFallback>
+                                <AvatarImage src="" alt="@shadcn" />
+                                <AvatarFallback><CloudUpload /></AvatarFallback>
                             </Avatar>
                             <div className="leading-none">
                                 {files.map((file, idx) => (

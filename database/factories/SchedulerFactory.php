@@ -29,6 +29,8 @@ class SchedulerFactory extends Factory
             'date_of_meeting' => $day->toDateString(),
             'start_time' => $start->toTimeString(),
             'end_time' => $end->toTimeString(),
+            'platform' => $this->faker->randomElement(['zoom', 'google meet', 'microsoft teams']),
+            'meeting_link' => $this->faker->url(),
         ];
         
     }

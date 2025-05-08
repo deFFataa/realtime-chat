@@ -6,6 +6,8 @@ export interface Props {
     comments_count: any;
     posts: Array<Post>;
     upcoming_meetings: Array<Meetings>;
+    total_posts: number;
+    total_likes: number;
 }
 
 export interface Post {

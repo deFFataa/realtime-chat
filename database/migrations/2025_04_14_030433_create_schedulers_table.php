@@ -18,6 +18,8 @@ return new class extends Migration
             $table->date('date_of_meeting');
             $table->time('start_time');
             $table->time('end_time');
+            $table->enum('platform', ['zoom', 'google meet', 'microsoft teams']);
+            $table->string('meeting_link');
             $table->timestamps();
         });
     }

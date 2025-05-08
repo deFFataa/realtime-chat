@@ -4,6 +4,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
@@ -41,6 +42,8 @@ const create = () => {
         date_of_meeting: '',
         start_time: '',
         end_time: '',
+        platform: '',
+        meeting_link: '',
     });
 
     const [date, setDate] = useState<Date | null>(data.date_of_meeting ? new Date(data.date_of_meeting) : null);
@@ -89,88 +92,123 @@ const create = () => {
                                 name="description"
                                 value={data.description}
                                 onChange={(e) => setData('description', e.target.value)}
-                                className="h-full min-h-auto w-full flex-1 resize-none overflow-x-hidden break-words break-all whitespace-pre-wrap"
+                                className="h-full max-h-fit min-h-auto w-full flex-1 resize-none overflow-x-hidden break-words break-all whitespace-pre-wrap"
                                 placeholder="Type the description here..."
                             />
                             <InputError className="text-sm" message={errors.description} />
                         </div>
-                        <div className="grid w-full items-center gap-1.5">
-                            <Label htmlFor="date_of_meeting">Date</Label>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        id="date_of_meeting"
-                                        variant={'outline'}
-                                        className={`justify-between text-left font-normal ${!date && 'text-muted-foreground'}`}
+                        <div className="grid grid-cols-3 gap-2">
+                            <div className="grid w-full items-center gap-1.5">
+                                <Label htmlFor="date_of_meeting">Date</Label>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            id="date_of_meeting"
+                                            variant={'outline'}
+                                            className={`justify-between text-left font-normal ${!date && 'text-muted-foreground'}`}
+                                        >
+                                            {date ? format(date, 'MMMM dd, yyyy') : <span>Pick a date</span>}
+                                            <CalendarIcon />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                        <Calendar mode="single" selected={date || undefined} onSelect={(day) => setDate(day || null)} initialFocus />
+                                    </PopoverContent>
+                                </Popover>
+                                <InputError className="text-sm" message={errors.date_of_meeting && 'The date field is required.'}></InputError>
+                            </div>
+                            <div className="grid w-full items-center gap-1.5">
+                                <Label htmlFor="start_time">Start Time</Label>
+                                <div className="relative">
+                                    <Input
+                                        name="start_time"
+                                        ref={inputStartTimeRef}
+                                        id="start_time"
+                                        type="time"
+                                        value={data.start_time}
+                                        onChange={(e) => setData('start_time', e.target.value)}
+                                        className="pr-10"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleStartTimeIconClick}
+                                        className="text-muted-foreground absolute top-1/2 right-3 -translate-y-1/2 focus:outline-none"
                                     >
-                                        {date ? format(date, 'MMMM dd, yyyy') : <span>Pick a date</span>}
-                                        <CalendarIcon />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0">
-                                    <Calendar mode="single" selected={date || undefined} onSelect={(day) => setDate(day || null)} initialFocus />
-                                </PopoverContent>
-                            </Popover>
-                            <InputError className="text-sm" message={errors.date_of_meeting && 'The date field is required.'}></InputError>
-                        </div>
-                        <div className="grid w-full items-center gap-1.5">
-                            <Label htmlFor="start_time">Start Time</Label>
-                            <div className="relative">
-                                <Input
-                                    name="start_time"
-                                    ref={inputStartTimeRef}
-                                    id="start_time"
-                                    type="time"
-                                    value={data.start_time}
-                                    onChange={(e) => setData('start_time', e.target.value)}
-                                    className="pr-10"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={handleStartTimeIconClick}
-                                    className="text-muted-foreground absolute top-1/2 right-3 -translate-y-1/2 focus:outline-none"
-                                >
-                                    <ClockIcon className="h-4 w-4" />
-                                </button>
-                            </div>
-                            <style>
-                                {`
+                                        <ClockIcon className="h-4 w-4" />
+                                    </button>
+                                </div>
+                                <style>
+                                    {`
                                 input[type="time"]::-webkit-calendar-picker-indicator {
                                     display: none;
                                 }
                             `}
-                            </style>
-                            <InputError className="text-sm" message={errors.start_time}></InputError>
-                        </div>
-                        <div className="grid w-full items-center gap-1.5">
-                            <Label htmlFor="end_time">End Time</Label>
-                            <div className="relative">
-                                <Input
-                                    ref={inputEndTimeRef}
-                                    name="end_time"
-                                    id="end_time"
-                                    type="time"
-                                    value={data.end_time}
-                                    onChange={(e) => setData('end_time', e.target.value)}
-                                    className="pr-10"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={handleEndTimeIconClick}
-                                    className="text-muted-foreground absolute top-1/2 right-3 -translate-y-1/2 focus:outline-none"
-                                >
-                                    <ClockIcon className="h-4 w-4" />
-                                </button>
+                                </style>
+                                <InputError className="text-sm" message={errors.start_time}></InputError>
                             </div>
-                            <style>
-                                {`
+                            <div className="grid w-full items-center gap-1.5">
+                                <Label htmlFor="end_time">End Time</Label>
+                                <div className="relative">
+                                    <Input
+                                        ref={inputEndTimeRef}
+                                        name="end_time"
+                                        id="end_time"
+                                        type="time"
+                                        value={data.end_time}
+                                        onChange={(e) => setData('end_time', e.target.value)}
+                                        className="pr-10"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleEndTimeIconClick}
+                                        className="text-muted-foreground absolute top-1/2 right-3 -translate-y-1/2 focus:outline-none"
+                                    >
+                                        <ClockIcon className="h-4 w-4" />
+                                    </button>
+                                </div>
+                                <style>
+                                    {`
                                 input[type="time"]::-webkit-calendar-picker-indicator {
                                     display: none;
                                 }
                             `}
-                            </style>
-                            <InputError className="text-sm" message={errors.end_time}></InputError>
+                                </style>
+                                <InputError className="text-sm" message={errors.end_time}></InputError>
+                            </div>
                         </div>
+                        <div className="grid grid-cols-3 gap-2">
+                            <div className='grid w-full items-center gap-1.5'>
+                                <Label htmlFor="platform">Platform</Label>
+                                <Select onValueChange={(e) => setData('platform', e)}>
+                                    <SelectTrigger id="platform">
+                                        <SelectValue placeholder="Choose a Platform" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectGroup>
+                                            <SelectLabel>Fruits</SelectLabel>
+                                            <SelectItem value="zoom">Zoom</SelectItem>
+                                            <SelectItem value="microsoft teams">Microsoft Teams</SelectItem>
+                                            <SelectItem value="google meet">Google Meet</SelectItem>
+                                        </SelectGroup>
+                                    </SelectContent>
+                                </Select>
+                                <InputError className="text-sm" message={errors.platform} />
+                            </div>
+                            <div className='col-span-2'>
+                                <div className="grid w-full items-center gap-1.5">
+                                    <Label htmlFor="meeting_link">Meeting Link</Label>
+                                    <Input
+                                        name="meeting_link"
+                                        value={data.meeting_link}
+                                        onChange={(e) => setData('meeting_link', e.target.value)}
+                                        id="meeting_link"
+                                        placeholder="E.g. Team Meeting"
+                                    />
+                                    <InputError className="text-sm" message={errors.meeting_link} />
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="grid place-content-end">
                             <Button disabled={processing}>
                                 {processing ? (

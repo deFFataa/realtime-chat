@@ -11,7 +11,7 @@ import {
     useReactTable,
     VisibilityState,
 } from '@tanstack/react-table';
-import { ArrowUpDown, CalendarPlus, ChevronDown, ChevronLeftIcon, ChevronRightIcon, LoaderCircle, Pencil, Trash } from 'lucide-react';
+import { ArrowUpDown, CalendarPlus, ChevronDown, ChevronLeftIcon, ChevronRightIcon, Eye, LoaderCircle, Pencil, Trash } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -60,6 +60,7 @@ interface Schedules {
     id: number;
     title: string;
     description: string;
+    date_of_meeting: string;
     start_time: string;
     end_time: string;
 }
@@ -116,15 +117,28 @@ const index = ({ meeting_schedule = [], attendance, users_count }: Props) => {
             cell: ({ row }) => <div className="font-medium">{row.getValue('title')}</div>,
         },
         {
-            accessorKey: 'description',
-            header: 'Description',
-            cell: ({ row }) => {
-                const description = String(row.getValue('description') || '-');
-                const trimmed = description.length > 80 ? description.slice(0, 80) + '…' : description;
-
-                return <div className="max-w-md text-wrap capitalize">{trimmed}</div>;
+            accessorKey: 'platform',
+            header: ({ column }) => {
+                return (
+                    <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                        Platform
+                        <ArrowUpDown />
+                    </Button>
+                );
             },
+            cell: ({ row }) => (
+                <div className="capitalize">{String(row.getValue('platform')).replace(/\b\w/g, (char: string) => char.toUpperCase())}</div>
+            ),
         },
+        //     accessorKey: 'description',
+        //     header: 'Description',
+        //     cell: ({ row }) => {
+        //         const description = String(row.getValue('description') || '-');
+        //         const trimmed = description.length > 80 ? description.slice(0, 80) + '…' : description;
+
+        //         return <div className="max-w-md text-wrap capitalize">{trimmed}</div>;
+        //     },
+        // },
         {
             accessorKey: 'date_of_meeting',
             header: ({ column }) => {
@@ -141,8 +155,8 @@ const index = ({ meeting_schedule = [], attendance, users_count }: Props) => {
             accessorKey: 'end_time',
             header: () => <div>Time</div>,
             cell: ({ row }) => {
-                const startTime = new Date(`1970-01-01T${row.original.start_time}Z`);
-                const endTime = new Date(`1970-01-01T${row.original.end_time}Z`);
+                const startTime = new Date(`${row.original.date_of_meeting}T${row.original.start_time}`);
+                const endTime = new Date(`${row.original.date_of_meeting}T${row.original.end_time}`);
 
                 return (
                     <div>
@@ -161,8 +175,8 @@ const index = ({ meeting_schedule = [], attendance, users_count }: Props) => {
                 return (
                     <Dialog>
                         <DialogTrigger asChild>
-                            <Button size="sm" variant="outline" className="flex w-full justify-start">
-                                <span className="ml-2">
+                            <Button size="sm" variant="outline" className="m-0 flex w-full justify-center">
+                                <span className="">
                                     {attendances.length}/{users_count}
                                 </span>
                             </Button>
@@ -196,6 +210,18 @@ const index = ({ meeting_schedule = [], attendance, users_count }: Props) => {
             header: 'Action',
             cell: ({ row }) => (
                 <div className="flex">
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger className="hover:bg-muted-foreground/30 rounded-full">
+                                <Link href={route('admin.schedules.show', row.getValue('id'))}>
+                                    <Eye className="p-[5px]" />
+                                </Link>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>View</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger className="hover:bg-muted-foreground/30 rounded-full">

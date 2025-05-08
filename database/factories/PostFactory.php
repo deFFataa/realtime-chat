@@ -22,7 +22,6 @@ class PostFactory extends Factory
             'title' => $this->faker->sentence,
             'body' => $this->faker->paragraph,
             'media_location' => $this->faker->optional()->imageUrl(),
-            'url' => $this->faker->optional()->url(),
         ];
     }
 }

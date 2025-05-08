@@ -49,7 +49,11 @@ class SchedulerController extends Controller
             'date_of_meeting' => ['required', 'date'],
             'start_time' => ['required'],
             'end_time' => ['required'],
+            'platform' => ['required'],
+            'meeting_link' => ['required', 'url'],
         ]);
+
+        // dd($validated);
 
         try {
             // Create the meeting
@@ -75,7 +79,9 @@ class SchedulerController extends Controller
      */
     public function show(Scheduler $scheduler)
     {
-        //
+        return Inertia::render('admin/scheduler/show', [
+            'scheduler' => $scheduler
+        ]);
     }
 
     /**

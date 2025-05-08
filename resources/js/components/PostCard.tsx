@@ -264,7 +264,7 @@ const PostCard = ({
                                     <Label htmlFor="link" className="sr-only">
                                         Link
                                     </Label>
-                                    <Input id="link" defaultValue={`http://127.0.0.1:8000${url}/post/${id}`} readOnly />
+                                    <Input id="link" defaultValue={`http://127.0.0.1:8000/post/${id}`} readOnly />
                                 </div>
                                 <Button
                                     type="button"
