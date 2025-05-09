@@ -77,7 +77,10 @@ export default function Dashboard({
     const [upcomingStartTimeMeeting, setUpcomingStartTimeMeeting] = useState(upcoming_meeting.start_time);
     const [upcomingendTimeMeeting, setUpcomingendTimeMeeting] = useState(upcoming_meeting.end_time);
 
-    // console.log(totalMoM);
+    const [feedbackList, setFeedbackList] = useState(feedbacks);
+    const [totalRatingToday, setTotalRatingToday] = useState(rating_today);
+    const [totalOverallRating, setTotalOverallRating] = useState(overall_rating);
+    console.log(totalPosts);
 
     useEffect(() => {
         const echo = new Echo({
@@ -91,12 +94,25 @@ export default function Dashboard({
         });
 
         // echo.channel('total-users').listen('TotalUsers', (e: any) => setTotalUsers(e.total_users));
-        // echo.channel('total-posts').listen('TotalPosts', (e: any) => setTotalPosts(e.total_posts));
         echo.channel('active-users').listen('TotalActiveUsers', (e: any) => setTotalActiveUsers(e.total_active_users));
         // echo.channel('new-user').listen('NewUser', (e: any) => {
         //     setNewUser((prevUsers) => [e, ...prevUsers.filter((user) => user.id !== e.id)]);
         //     setAllUsers((prevUsers) => [e, ...prevUsers.filter((user) => user.id !== e.id)]);
         // });
+        echo.channel('rating').listen('Rating', (e: any) => {
+            // console.log();
+            
+            setFeedbackList([...(feedbacks || []), e.feedbacks]);
+            setTotalRatingToday(e.rating_today);
+            setTotalOverallRating(e.overall_rating);
+        })
+        echo.channel('agenda').listen('TotalAgenda', (e: any) => setTotalAgenda(e.agenda));
+        echo.channel('minutes-of-meeting').listen('TotalMinutesOfTheMeeting', (e: any) => {
+            console.log(e);
+            setTotalMoM(e.minutesOfMeeting)
+            
+        });
+        echo.channel('total-posts').listen('TotalPosts', (e: any) => setTotalPosts(e.post_count));
     }, []);
 
     return (
@@ -107,7 +123,7 @@ export default function Dashboard({
                     <TotalAgenda totalAgenda={totalAgenda} />
                     <TotalMoM totalMoM={totalMoM} />
                     <TotalBoardResolution />
-                    <TotalDiscussionBoard />
+                    <TotalDiscussionBoard totalPosts={totalPosts}/>
                     <ActiveUsers totalActiveUsers={totalActiveUsers} />
                     <UpcomingMeeting
                         upcomingDateMeeting={upcomingDateMeeting}
@@ -117,7 +133,7 @@ export default function Dashboard({
                 </div>
                 <div className="grid min-h-0 flex-1 grid-cols-2 gap-4 max-lg:grid-cols-1">
                     <ScheduleAndReminders schedule={schedule} />
-                    <FeedbackSummaryReport feedbacks={feedbacks} rating_today={rating_today} overall_rating={overall_rating} />
+                    <FeedbackSummaryReport feedbacks={feedbackList} rating_today={totalRatingToday} overall_rating={totalOverallRating} />
                 </div>
             </div>
         </AppLayout>

@@ -2,7 +2,7 @@
 
 namespace App\Events;
 
-use App\Models\Post;
+use App\Models\Agenda;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -12,21 +12,21 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TotalPosts implements ShouldBroadcastNow
+class TotalAgenda implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
      * Create a new event instance.
      */
-    public function __construct()
+    public function __construct(public Agenda $agenda)
     {
         //
     }
 
-    public function broadcastWith(){
+    public function broadcastWith() {
         return [
-            "post_count" => Post::count(),
+            'agenda' => $this->agenda->count()
         ];
     }
 
@@ -38,7 +38,7 @@ class TotalPosts implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new Channel('total-posts'),
+            new Channel('agenda'),
         ];
     }
 }

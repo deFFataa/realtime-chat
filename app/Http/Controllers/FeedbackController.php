@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\Rating;
 use App\Models\Feedback;
 use App\Http\Requests\StoreFeedbackRequest;
 use App\Http\Requests\UpdateFeedbackRequest;
@@ -20,19 +21,23 @@ class FeedbackController extends Controller
             abort(403);
         }
 
+        $feedbacks = Feedback::with('user')->latest()->get()->map(function ($feedback) {
+            return [
+                'id' => $feedback->id,
+                'name' => $feedback->user->name,
+                'rating' => $feedback->rating,
+                'comment' => $feedback->comment,
+                'created_at' => $feedback->created_at
+            ];
+        });
+        $rating_today = Feedback::whereDate('created_at', today())->average('rating');
+        $overall_rating = Feedback::average('rating');
+
 
         return Inertia::render('admin/feedback/index', [
-            'feedbacks' => Feedback::with('user')->latest()->get()->map(function ($feedback) {
-                return [
-                    'id' => $feedback->id,
-                    'name' => $feedback->user->name,
-                    'rating' => $feedback->rating,
-                    'comment' => $feedback->comment,
-                    'created_at' => $feedback->created_at
-                ];
-            }),
-            'rating_today' => Feedback::whereDate('created_at', today())->average('rating'),
-            'overall_rating' => Feedback::average('rating'),
+            'feedbacks' => $feedbacks,
+            'rating_today' => $rating_today,
+            'overall_rating' => $overall_rating,
         ]);
     }
 
@@ -56,12 +61,21 @@ class FeedbackController extends Controller
         ]);
 
         try {
-            Feedback::create($validated);
+            $newFeedback = Feedback::create($validated);
+
+            $newFeedback->load('user'); // Make sure the user relationship is loaded
+
+            $rating_today = Feedback::whereDate('created_at', today())->average('rating');
+            $overall_rating = Feedback::average('rating');
+
+            broadcast(new Rating($newFeedback, $rating_today, $overall_rating));
         } catch (\Throwable $th) {
             echo $th->getMessage();
         }
+
         return redirect()->back()->with('popup-thankyou', 'Thank you for your feedback!');
     }
+
 
     /**
      * Display the specified resource.

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\NewPost;
+use App\Events\TotalPosts;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Models\PostLike;
@@ -19,9 +21,9 @@ class PostController extends Controller
      */
     public function index()
     {
-        if (Auth::user()->role == 'admin') {
-            abort(403);
-        }
+        // if (Auth::user()->role == 'admin') {
+        //     abort(403);
+        // }
 
         $user = Auth::user();
 
@@ -72,11 +74,14 @@ class PostController extends Controller
         ]);
 
         try {
-            Post::create($validated);
+            $post = Post::create($validated);
+
+            broadcast(new TotalPosts());
+            broadcast(new NewPost($post));
 
         } catch (\Throwable $th) {
             echo 'Error:' . $th;
-            return;
+            exit;
         }
 
         return redirect('/home');
@@ -124,6 +129,7 @@ class PostController extends Controller
             echo 'Error:' . $th;
             return;
         }
+        broadcast(new TotalPosts());
 
         return redirect('/home');
 
@@ -160,7 +166,7 @@ class PostController extends Controller
         ]);
     }
 
-    private function flattenComments($comments)
+    public function flattenComments($comments)
     {
         $flattened = collect();
 
@@ -209,6 +215,8 @@ class PostController extends Controller
         }
 
         $post->delete();
+
+        broadcast(new TotalPosts());
 
         return redirect('/home');
     }

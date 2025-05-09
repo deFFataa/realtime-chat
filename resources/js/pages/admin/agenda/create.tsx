@@ -75,7 +75,7 @@ const create = () => {
                                 }}
                             />
                             <p className="text-muted-foreground text-sm">Note: The file must be in PDF or word format and less than 2mb</p>
-                            <InputError className="text-sm" message={errors.agenda_file_loc} />
+                            <InputError className="text-sm" message={errors.agenda_file_loc && 'This file is required.'} />
                         </div>
                         <div className="grid place-content-end">
                             <Button disabled={processing}>

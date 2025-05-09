@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\TotalMinutesOfTheMeeting;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\Agenda;
@@ -82,7 +83,8 @@ class MinutesOfMeetingController extends Controller
                 $validated['mom_file_loc'] = $fileName;
             }
 
-            MinutesOfMeeting::create($validated);
+            $minutes_of_meeting = MinutesOfMeeting::create($validated);
+            broadcast(new TotalMinutesOfTheMeeting($minutes_of_meeting));
 
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Agenda creation failed. Please try again.');

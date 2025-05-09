@@ -227,7 +227,7 @@ const index = ({ feedbacks = [], rating_today, overall_rating }: Props) => {
             <Head title="Agenda" />
             <div className="w-full p-4">
                 {feedbackList.length === 0 && (
-                    <div className="text-muted-foreground flex h-100 items-center justify-center text-lg font-medium">No agendas found.</div>
+                    <div className="text-muted-foreground flex h-100 items-center justify-center text-lg font-medium">No feedbacks found.</div>
                 )}
                 {feedbackList.length > 0 && (
                     <>

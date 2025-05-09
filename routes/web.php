@@ -1,5 +1,6 @@
 <?php
 
+use App\Events\Rating;
 use App\Http\Controllers\PdfMergeController;
 use App\Models\Post;
 use App\Models\User;
@@ -39,12 +40,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->orderBy('date_of_meeting', 'asc')
             ->first(['date_of_meeting', 'start_time', 'end_time']);
 
-        // dd($test);
+        // dd(Post::count());
 
         return Inertia::render('admin/dashboard/index', [
             'new_users' => User::whereBetween('created_at', [now()->subWeek(), now()])->where('role', 'user')->latest()->get(),
             'users_count' => User::where('role', 'user')->count(),
-            'posts_count' => Post::count(),
+            'post_count' => Post::count(),
             'active_users' => User::where('role', 'user')
                 ->where('is_loggedin', true)
                 ->count(),
@@ -53,7 +54,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'upcoming_meeting' => $test,
             'agenda' => Agenda::count(),
             'minutesOfMeeting' => MinutesOfMeeting::count(),
-            'feedbacks' => Feedback::with('user')->latest()->get(),
+
+            
+            'feedbacks' => Feedback::with('user')->whereDate('created_at', today())->latest()->get(),
             'rating_today' => Feedback::whereDate('created_at', today())->average('rating'),
             'overall_rating' => Feedback::average('rating'),
         ]);
@@ -67,11 +70,7 @@ Route::get('attendance/{scheduler}/confirm/{user}', [SchedulerController::class,
 Route::post('feedback/{user_id}', [FeedbackController::class, 'store'])
     ->name('feedback.store');
 
-
-Route::get('/pdf-merge', function () {
-    return Inertia::render('admin/pdfmerger/index');
-});
-
+Route::get('/pdf-merge', [PdfMergeController::class, 'index'])->name('pdf.merge');
 Route::post('/merge', [PdfMergeController::class, 'merge'])->name('pdf.merge');
 
 
@@ -86,3 +85,10 @@ require __DIR__ . '/agenda.php';
 require __DIR__ . '/minutes_of_meeting.php';
 require __DIR__ . '/feedback.php';
 require __DIR__ . '/comments.php';
+
+
+
+
+Route::get('/broadcast', function () {
+    broadcast(new Rating(User::find(1)));
+});

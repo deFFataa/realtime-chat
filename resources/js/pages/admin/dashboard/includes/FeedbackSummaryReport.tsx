@@ -33,21 +33,29 @@ const FeedbackSummaryReport = ({ feedbacks, rating_today, overall_rating }: Prop
                     <div className="flex justify-between">
                         <div className="flex items-center gap-2">
                             <h2 className="text-sm font-medium">Today's Rating:</h2>
-                            <div className="inline-flex items-center">
-                                <h2 className="text-sm">{rating_today}</h2>
-                                <Star className="fill-yellow-300" color="" size={15} />
-                            </div>
+                            {feedbacks?.length !== 0 ? (
+                                <div className="inline-flex items-center">
+                                    <h2 className="text-sm">{rating_today.toFixed(2)}</h2>
+                                    <Star className="fill-yellow-300" color="" size={15} />
+                                </div>
+                            ) : (
+                                <span className="text-sm">No Rating Yet</span>
+                            )}
                         </div>
                         <div className="flex items-center gap-2">
                             <h2 className="text-sm font-medium">Overall Rating:</h2>
-                            <div className="inline-flex items-center">
-                                {/* <h2 className="text-sm">{overall_rating.toFixed(2)}</h2> */}
-                                <Star className="fill-yellow-300" color="" size={15} />
-                            </div>
+                            {feedbacks?.length !== 0 ? (
+                                <div className="inline-flex items-center">
+                                    <h2 className="text-sm">{overall_rating.toFixed(2)}</h2>
+                                    <Star className="fill-yellow-300" color="" size={15} />
+                                </div>
+                            ) : (
+                                '--'
+                            )}
                         </div>
                     </div>
                 </div>
-                <div className='max-h-[330px] overflow-auto'>
+                <div className="max-h-[330px] overflow-auto">
                     {feedbacks?.map((feedback) => (
                         <div key={feedback.id} className="mt-3 flex justify-between pb-4">
                             <div className="flex items-center gap-2">
@@ -75,6 +83,9 @@ const FeedbackSummaryReport = ({ feedbacks, rating_today, overall_rating }: Prop
                         </div>
                     ))}
                 </div>
+                {feedbacks?.length === 0 && (
+                    <div className="text-muted-foreground grid h-82 place-items-center rounded-md text-sm">No feedbacks yet.</div>
+                )}
             </div>
         </div>
     );

@@ -2,7 +2,8 @@
 
 namespace App\Events;
 
-use App\Models\Post;
+use App\Models\Feedback;
+use App\Models\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -12,21 +13,31 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TotalPosts implements ShouldBroadcastNow
+class Rating implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
      * Create a new event instance.
      */
-    public function __construct()
+    public function __construct(public Feedback $feedback, public $rating_today, public $overall_rating)
     {
         //
     }
 
-    public function broadcastWith(){
+    public function broadcastWith() {
         return [
-            "post_count" => Post::count(),
+            'feedbacks' => [
+                'id' => $this->feedback->id,
+                'user' => [
+                    'name' => $this->feedback->user->name
+                ],
+                'rating' => $this->feedback->rating,
+                'comment' => $this->feedback->comment,
+                'created_at' => $this->feedback->created_at
+            ],
+            'rating_today' => $this->rating_today,
+            'overall_rating' => $this->overall_rating
         ];
     }
 
@@ -38,7 +49,7 @@ class TotalPosts implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new Channel('total-posts'),
+            new Channel('rating'),
         ];
     }
 }

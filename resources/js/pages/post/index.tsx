@@ -10,6 +10,7 @@ import { BreadcrumbItem, SharedData } from '@/types';
 import { Props } from '@/types/post';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
+import Echo from 'laravel-echo';
 import { Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -25,15 +26,17 @@ const index = ({ posts, upcoming_meetings, total_posts, total_likes }: Props) =>
 
     const getInitials = useInitials();
 
-    // const [commentsCount, setCommentsCount] = useState(() =>
-    //     posts.reduce(
-    //         (acc, post) => {
-    //             acc[post.id] = post.comments_count || 0; // 👈 use comments_count here
-    //             return acc;
-    //         },
-    //         {} as Record<number, number>,
-    //     ),
-    // );
+    const [postList, setPostList] = useState(posts);
+
+    const [commentsCount, setCommentsCount] = useState(() =>
+        posts.reduce(
+            (acc, post) => {
+                acc[post.id] = post.comments_count || 0; // 👈 use comments_count here
+                return acc;
+            },
+            {} as Record<number, number>,
+        ),
+    );
 
     const [postLikesCount, setpostLikesCount] = useState(() =>
         posts.reduce(
@@ -46,15 +49,15 @@ const index = ({ posts, upcoming_meetings, total_posts, total_likes }: Props) =>
     );
 
     useEffect(() => {
-        // setCommentsCount(
-        //     posts.reduce(
-        //         (acc, post) => {
-        //             acc[post.id] = post.comments?.length || 0;
-        //             return acc;
-        //         },
-        //         {} as Record<number, number>,
-        //     ),
-        // );
+        setCommentsCount(
+            posts.reduce(
+                (acc, post) => {
+                    acc[post.id] = post.comments?.length || 0;
+                    return acc;
+                },
+                {} as Record<number, number>,
+            ),
+        );
         setpostLikesCount(
             posts.reduce(
                 (acc, post) => {
@@ -65,6 +68,22 @@ const index = ({ posts, upcoming_meetings, total_posts, total_likes }: Props) =>
             ),
         );
     }, [posts]);
+
+    useEffect(() => {
+        const echo = new Echo({
+            broadcaster: 'reverb',
+            key: import.meta.env.VITE_REVERB_APP_KEY,
+            wsHost: import.meta.env.VITE_REVERB_HOST,
+            wsPort: import.meta.env.VITE_REVERB_PORT ?? 80,
+            wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
+            forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
+            enabledTransports: ['ws', 'wss'],
+        });
+
+        echo.channel('new-post').listen('NewPost', (e: any) => {
+            setPostList([e, ...posts]);
+        });
+    }, []);
 
     return (
         <AppHeaderLayout breadcrumbs={breadcrumbs}>
@@ -163,8 +182,8 @@ const index = ({ posts, upcoming_meetings, total_posts, total_likes }: Props) =>
                             </div>
                         </div>
                     </div>
-                    <div className={`bg-background col-span-2 rounded-lg ${posts.length !== 0 && 'h-fit'}`}>
-                        {posts.length === 0 ? (
+                    <div className={`bg-background col-span-2 rounded-lg ${postList.length !== 0 && 'h-fit'}`}>
+                        {postList.length === 0 ? (
                             <div className="grid h-full place-items-center">
                                 <div className="text-center">
                                     <h3>No posts found.</h3>
@@ -176,8 +195,6 @@ const index = ({ posts, upcoming_meetings, total_posts, total_likes }: Props) =>
                             </div>
                         ) : (
                             posts.map((post) => {
-                                // console.log(post);
-
                                 return (
                                     <div key={post.id}>
                                         <PostCard
@@ -185,7 +202,7 @@ const index = ({ posts, upcoming_meetings, total_posts, total_likes }: Props) =>
                                             user={post.user}
                                             id={post.id}
                                             title={post.title}
-                                            comments_count={post.comments_count}
+                                            comments_count={commentsCount[post.id]}
                                             likes_count={postLikesCount[post.id]}
                                             is_liked={(post.post_likes ?? []).some((like) => like.user_id === user_id)}
                                             body={post.body}
@@ -198,7 +215,7 @@ const index = ({ posts, upcoming_meetings, total_posts, total_likes }: Props) =>
                                 );
                             })
                         )}
-                        {posts.length !== 0 && (
+                        {postList.length !== 0 && (
                             <div className="my-5 grid place-items-center">
                                 <div className="text-center">
                                     <h3>You have reached the end.</h3>

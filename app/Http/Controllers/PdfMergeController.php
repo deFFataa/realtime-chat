@@ -3,10 +3,23 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 use setasign\Fpdi\Fpdi;
 
 class PdfMergeController extends Controller
 {
+    public function __construct()
+    {
+        if (Auth::user()->role === 'user') {
+            abort(403);
+        }
+    }
+
+    public function index(){
+        return Inertia::render('admin/pdfmerger/index');
+    }
+
     public function merge(Request $request)
     {
         $request->validate([

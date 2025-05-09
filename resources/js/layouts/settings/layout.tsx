@@ -2,8 +2,8 @@ import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import { SharedData, type NavItem } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
 import { type PropsWithChildren } from 'react';
 
 const sidebarNavItems: NavItem[] = [
@@ -30,10 +30,14 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
         return null;
     }
 
+    const {auth} = usePage<SharedData>().props;
+
+    const is_admin = auth.user.role === 'admin' || auth.user.role === 'super-admin';
+
     const currentPath = window.location.pathname;
 
     return (
-        <div className="px-4 py-6 mx-auto md:max-w-7xl">
+        <div className={`${!is_admin ? 'px-4 py-6 mx-auto md:max-w-7xl' : 'px-5'}`}>
             <Heading title="Settings" description="Manage your profile and account settings" />
 
             <div className="flex flex-col space-y-8 lg:flex-row lg:space-y-0 lg:space-x-12">

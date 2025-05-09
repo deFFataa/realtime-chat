@@ -2,17 +2,15 @@
 
 namespace App\Events;
 
-use App\Models\Post;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TotalPosts implements ShouldBroadcastNow
+class LikePost
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -24,12 +22,6 @@ class TotalPosts implements ShouldBroadcastNow
         //
     }
 
-    public function broadcastWith(){
-        return [
-            "post_count" => Post::count(),
-        ];
-    }
-
     /**
      * Get the channels the event should broadcast on.
      *
@@ -38,7 +30,7 @@ class TotalPosts implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new Channel('total-posts'),
+            new PrivateChannel('channel-name'),
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\TotalAgenda;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\Agenda;
@@ -49,6 +50,8 @@ class AgendaController extends Controller
             'agenda_file_loc' => ['required', 'file', 'mimes:pdf,docx', 'max:5120'],
         ]);
 
+        
+
         try {
             if ($request->file('agenda_file_loc')->isValid()) {
                 $file = $request->file('agenda_file_loc');
@@ -68,7 +71,9 @@ class AgendaController extends Controller
                 $validated['agenda_file_loc'] = $fileName;
             }
 
-            Agenda::create($validated);
+            $agenda = Agenda::create($validated);
+
+            broadcast(new TotalAgenda($agenda));
 
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Agenda creation failed. Please try again.');

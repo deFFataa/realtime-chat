@@ -3,11 +3,11 @@ import { Link } from '@inertiajs/react';
 import { Megaphone } from 'lucide-react';
 
 interface Props {
-    totalBoardResolution?: number;
+    totalPosts?: number;
 }
 
 
-const TotalDiscussionBoard = ({ totalBoardResolution = 0 }: Props) => {
+const TotalDiscussionBoard = ({ totalPosts = 0 }: Props) => {
     return (
         <div className="bg-background grid h-full w-full rounded-md p-4 font-medium shadow">
             <div className="relative">
@@ -20,7 +20,7 @@ const TotalDiscussionBoard = ({ totalBoardResolution = 0 }: Props) => {
                         <PopoverContent className="w-fit">
                             <div className="grid gap-4">
                                 <div className="space-y-2">
-                                    <Link href="/admin/discussion=-board" className="hover:bg-muted rounded-md p-2 text-start text-sm">
+                                    <Link href="/admin/discussion-board" className="hover:bg-muted rounded-md p-2 text-start text-sm">
                                         View All
                                     </Link>
                                 </div>
@@ -29,7 +29,7 @@ const TotalDiscussionBoard = ({ totalBoardResolution = 0 }: Props) => {
                     </Popover>
                 </div>
             </div>
-            <span className="text-primary mt-2 text-2xl font-extrabold">{totalBoardResolution}</span>
+            <span className="text-primary mt-2 text-2xl font-extrabold">{totalPosts}</span>
         </div>
     );
 };

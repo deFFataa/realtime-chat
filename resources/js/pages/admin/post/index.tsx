@@ -8,9 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AppLayout from '@/layouts/app-layout';
-import { BreadcrumbItem } from '@/types';
+import { BreadcrumbItem, SharedData } from '@/types';
 import { Post, Props } from '@/types/post';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import {
     ColumnDef,
     ColumnFiltersState,
@@ -24,7 +24,7 @@ import {
     VisibilityState,
 } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { ArrowUpDown, ChevronDown, ChevronLeftIcon, ChevronRightIcon, Eye, FileUpIcon, LoaderCircle, Pencil, Plus, Trash } from 'lucide-react';
+import { ArrowUpDown, ChevronDown, ChevronLeftIcon, ChevronRightIcon, Eye, FileUpIcon, LoaderCircle, Plus, Trash } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -38,8 +38,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 const index = ({ posts = [] }: Props) => {
     const [post, setPost] = useState(posts);
     const data = post;
-
-    console.log(posts);
 
     useEffect(() => {
         setPost(posts);
@@ -59,6 +57,9 @@ const index = ({ posts = [] }: Props) => {
             },
         });
     };
+
+    const { auth } = usePage<SharedData>().props;
+    const is_super_admin = auth.user.role === 'super-admin';
 
     const columns: ColumnDef<Post>[] = [
         {
@@ -190,11 +191,11 @@ const index = ({ posts = [] }: Props) => {
             accessorKey: 'id',
             header: 'Action',
             cell: ({ row }) => (
-                <div className="flex">
+                <div className="flex justify-center">
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger className="hover:bg-muted-foreground/30 rounded-full">
-                                <a href={route('discussion-board.show', row.getValue('id'))} target='_blank'>
+                                <a href={route('discussion-board.show', row.getValue('id'))} target="_blank">
                                     <Eye className="p-[5px]" />
                                 </a>
                             </TooltipTrigger>
@@ -203,43 +204,45 @@ const index = ({ posts = [] }: Props) => {
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <Dialog>
-                                <TooltipTrigger className="hover:bg-muted-foreground/30 rounded-full">
-                                    <DialogTrigger asChild type="button">
-                                        <Trash className="p-[5px]" />
-                                    </DialogTrigger>
-                                </TooltipTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>Are you sure you want to delete this post?</DialogTitle>
-                                        <DialogDescription>
-                                            All of the data that is associated with this post will be deleted. This action cannot be undone.
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <DialogFooter>
-                                        <form onSubmit={(e) => handleDelete(row.getValue('id'), e)}>
-                                            <Button variant={'destructive'} disabled={processing}>
-                                                {processing ? (
-                                                    <div className="flex items-center gap-1">
-                                                        <LoaderCircle className="h-4 w-4 animate-spin" />
-                                                        Deleting...
-                                                    </div>
-                                                ) : (
-                                                    'Confirm'
-                                                )}
-                                            </Button>
-                                        </form>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
+                    {is_super_admin && (
+                        <TooltipProvider>
+                            <Tooltip>
+                                <Dialog>
+                                    <TooltipTrigger className="hover:bg-muted-foreground/30 rounded-full">
+                                        <DialogTrigger asChild type="button">
+                                            <Trash className="p-[5px]" />
+                                        </DialogTrigger>
+                                    </TooltipTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Are you sure you want to delete this post?</DialogTitle>
+                                            <DialogDescription>
+                                                All of the data that is associated with this post will be deleted. This action cannot be undone.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <DialogFooter>
+                                            <form onSubmit={(e) => handleDelete(row.getValue('id'), e)}>
+                                                <Button variant={'destructive'} disabled={processing}>
+                                                    {processing ? (
+                                                        <div className="flex items-center gap-1">
+                                                            <LoaderCircle className="h-4 w-4 animate-spin" />
+                                                            Deleting...
+                                                        </div>
+                                                    ) : (
+                                                        'Confirm'
+                                                    )}
+                                                </Button>
+                                            </form>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
 
-                            <TooltipContent>
-                                <p>Delete</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                                <TooltipContent>
+                                    <p>Delete</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    )}
                 </div>
             ),
         },
